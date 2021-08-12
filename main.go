@@ -6,6 +6,8 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/evleria/PriceService/internal/config"
 	grpcService "github.com/evleria/PriceService/internal/handler"
+	"github.com/evleria/PriceService/internal/repository"
+	"github.com/evleria/PriceService/internal/service"
 	"github.com/evleria/PriceService/protocol/pb"
 	"github.com/jackc/pgx/v4"
 	"google.golang.org/grpc"
@@ -21,8 +23,10 @@ func main() {
 	db := getPostgres(cfg)
 	defer db.Close(context.Background())
 
-	//fmt.Println("Hello, World")
-	biddingService := grpcService.NewBiddingService()
+	positionRepository := repository.NewPositionService(db)
+	positionService := service.NewPositionService(positionRepository)
+
+	biddingService := grpcService.NewBiddingService(positionService)
 	startGrpcServer(biddingService, ":6000")
 }
 
