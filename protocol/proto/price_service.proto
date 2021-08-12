@@ -3,13 +3,13 @@ syntax="proto3";
 option go_package = "/pb";
 
 service BiddingService {
-  rpc Hello (HelloRequest) returns (HelloResponse) {}
+  rpc AddPosition (AddPositionRequest) returns (AddPositionResponse) {}
 }
 
-message HelloRequest {
-  string name =1;
+message AddPositionRequest {
+  double initial_price = 1;
 }
 
-message HelloResponse {
-  string name =1;
+message AddPositionResponse {
+  int64 position_id = 1;
 }

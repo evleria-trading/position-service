@@ -20,16 +20,16 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type HelloRequest struct {
+type AddPositionRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	InitialPrice float64 `protobuf:"fixed64,1,opt,name=initial_price,json=initialPrice,proto3" json:"initial_price,omitempty"`
 }
 
-func (x *HelloRequest) Reset() {
-	*x = HelloRequest{}
+func (x *AddPositionRequest) Reset() {
+	*x = AddPositionRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_price_service_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -37,13 +37,13 @@ func (x *HelloRequest) Reset() {
 	}
 }
 
-func (x *HelloRequest) String() string {
+func (x *AddPositionRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HelloRequest) ProtoMessage() {}
+func (*AddPositionRequest) ProtoMessage() {}
 
-func (x *HelloRequest) ProtoReflect() protoreflect.Message {
+func (x *AddPositionRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_price_service_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -55,28 +55,28 @@ func (x *HelloRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HelloRequest.ProtoReflect.Descriptor instead.
-func (*HelloRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use AddPositionRequest.ProtoReflect.Descriptor instead.
+func (*AddPositionRequest) Descriptor() ([]byte, []int) {
 	return file_price_service_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *HelloRequest) GetName() string {
+func (x *AddPositionRequest) GetInitialPrice() float64 {
 	if x != nil {
-		return x.Name
+		return x.InitialPrice
 	}
-	return ""
+	return 0
 }
 
-type HelloResponse struct {
+type AddPositionResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	PositionId int64 `protobuf:"varint,1,opt,name=position_id,json=positionId,proto3" json:"position_id,omitempty"`
 }
 
-func (x *HelloResponse) Reset() {
-	*x = HelloResponse{}
+func (x *AddPositionResponse) Reset() {
+	*x = AddPositionResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_price_service_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -84,13 +84,13 @@ func (x *HelloResponse) Reset() {
 	}
 }
 
-func (x *HelloResponse) String() string {
+func (x *AddPositionResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HelloResponse) ProtoMessage() {}
+func (*AddPositionResponse) ProtoMessage() {}
 
-func (x *HelloResponse) ProtoReflect() protoreflect.Message {
+func (x *AddPositionResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_price_service_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -102,32 +102,36 @@ func (x *HelloResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HelloResponse.ProtoReflect.Descriptor instead.
-func (*HelloResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use AddPositionResponse.ProtoReflect.Descriptor instead.
+func (*AddPositionResponse) Descriptor() ([]byte, []int) {
 	return file_price_service_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *HelloResponse) GetName() string {
+func (x *AddPositionResponse) GetPositionId() int64 {
 	if x != nil {
-		return x.Name
+		return x.PositionId
 	}
-	return ""
+	return 0
 }
 
 var File_price_service_proto protoreflect.FileDescriptor
 
 var file_price_service_proto_rawDesc = []byte{
 	0x0a, 0x13, 0x70, 0x72, 0x69, 0x63, 0x65, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x22, 0x0a, 0x0c, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x23, 0x0a, 0x0d, 0x48, 0x65, 0x6c,
-	0x6c, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61,
-	0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x32, 0x3a,
-	0x0a, 0x0e, 0x42, 0x69, 0x64, 0x64, 0x69, 0x6e, 0x67, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
-	0x12, 0x28, 0x0a, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x12, 0x0d, 0x2e, 0x48, 0x65, 0x6c, 0x6c,
-	0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0e, 0x2e, 0x48, 0x65, 0x6c, 0x6c, 0x6f,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x05, 0x5a, 0x03, 0x2f, 0x70,
-	0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x39, 0x0a, 0x12, 0x41, 0x64, 0x64, 0x50, 0x6f, 0x73, 0x69,
+	0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x23, 0x0a, 0x0d, 0x69,
+	0x6e, 0x69, 0x74, 0x69, 0x61, 0x6c, 0x5f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x01, 0x52, 0x0c, 0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x6c, 0x50, 0x72, 0x69, 0x63, 0x65,
+	0x22, 0x36, 0x0a, 0x13, 0x41, 0x64, 0x64, 0x50, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1f, 0x0a, 0x0b, 0x70, 0x6f, 0x73, 0x69, 0x74,
+	0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0a, 0x70, 0x6f,
+	0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x32, 0x4c, 0x0a, 0x0e, 0x42, 0x69, 0x64, 0x64,
+	0x69, 0x6e, 0x67, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x3a, 0x0a, 0x0b, 0x41, 0x64,
+	0x64, 0x50, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x13, 0x2e, 0x41, 0x64, 0x64, 0x50,
+	0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x14,
+	0x2e, 0x41, 0x64, 0x64, 0x50, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x05, 0x5a, 0x03, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -144,12 +148,12 @@ func file_price_service_proto_rawDescGZIP() []byte {
 
 var file_price_service_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_price_service_proto_goTypes = []interface{}{
-	(*HelloRequest)(nil),  // 0: HelloRequest
-	(*HelloResponse)(nil), // 1: HelloResponse
+	(*AddPositionRequest)(nil),  // 0: AddPositionRequest
+	(*AddPositionResponse)(nil), // 1: AddPositionResponse
 }
 var file_price_service_proto_depIdxs = []int32{
-	0, // 0: BiddingService.Hello:input_type -> HelloRequest
-	1, // 1: BiddingService.Hello:output_type -> HelloResponse
+	0, // 0: BiddingService.AddPosition:input_type -> AddPositionRequest
+	1, // 1: BiddingService.AddPosition:output_type -> AddPositionResponse
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -164,7 +168,7 @@ func file_price_service_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_price_service_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HelloRequest); i {
+			switch v := v.(*AddPositionRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -176,7 +180,7 @@ func file_price_service_proto_init() {
 			}
 		}
 		file_price_service_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HelloResponse); i {
+			switch v := v.(*AddPositionResponse); i {
 			case 0:
 				return &v.state
 			case 1:

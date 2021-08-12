@@ -18,7 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BiddingServiceClient interface {
-	Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error)
+	AddPosition(ctx context.Context, in *AddPositionRequest, opts ...grpc.CallOption) (*AddPositionResponse, error)
 }
 
 type biddingServiceClient struct {
@@ -29,9 +29,9 @@ func NewBiddingServiceClient(cc grpc.ClientConnInterface) BiddingServiceClient {
 	return &biddingServiceClient{cc}
 }
 
-func (c *biddingServiceClient) Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error) {
-	out := new(HelloResponse)
-	err := c.cc.Invoke(ctx, "/BiddingService/Hello", in, out, opts...)
+func (c *biddingServiceClient) AddPosition(ctx context.Context, in *AddPositionRequest, opts ...grpc.CallOption) (*AddPositionResponse, error) {
+	out := new(AddPositionResponse)
+	err := c.cc.Invoke(ctx, "/BiddingService/AddPosition", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (c *biddingServiceClient) Hello(ctx context.Context, in *HelloRequest, opts
 // All implementations must embed UnimplementedBiddingServiceServer
 // for forward compatibility
 type BiddingServiceServer interface {
-	Hello(context.Context, *HelloRequest) (*HelloResponse, error)
+	AddPosition(context.Context, *AddPositionRequest) (*AddPositionResponse, error)
 	mustEmbedUnimplementedBiddingServiceServer()
 }
 
@@ -50,8 +50,8 @@ type BiddingServiceServer interface {
 type UnimplementedBiddingServiceServer struct {
 }
 
-func (UnimplementedBiddingServiceServer) Hello(context.Context, *HelloRequest) (*HelloResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Hello not implemented")
+func (UnimplementedBiddingServiceServer) AddPosition(context.Context, *AddPositionRequest) (*AddPositionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddPosition not implemented")
 }
 func (UnimplementedBiddingServiceServer) mustEmbedUnimplementedBiddingServiceServer() {}
 
@@ -66,20 +66,20 @@ func RegisterBiddingServiceServer(s grpc.ServiceRegistrar, srv BiddingServiceSer
 	s.RegisterService(&BiddingService_ServiceDesc, srv)
 }
 
-func _BiddingService_Hello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HelloRequest)
+func _BiddingService_AddPosition_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddPositionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BiddingServiceServer).Hello(ctx, in)
+		return srv.(BiddingServiceServer).AddPosition(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BiddingService/Hello",
+		FullMethod: "/BiddingService/AddPosition",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BiddingServiceServer).Hello(ctx, req.(*HelloRequest))
+		return srv.(BiddingServiceServer).AddPosition(ctx, req.(*AddPositionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -92,8 +92,8 @@ var BiddingService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*BiddingServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Hello",
-			Handler:    _BiddingService_Hello_Handler,
+			MethodName: "AddPosition",
+			Handler:    _BiddingService_AddPosition_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

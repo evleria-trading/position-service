@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/caarlos0/env/v6"
 	"github.com/evleria/PriceService/internal/config"
-	grpcService "github.com/evleria/PriceService/internal/grpc"
+	grpcService "github.com/evleria/PriceService/internal/handler"
 	"github.com/evleria/PriceService/protocol/pb"
 	"github.com/jackc/pgx/v4"
 	"google.golang.org/grpc"
