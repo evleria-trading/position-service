@@ -11,4 +11,6 @@ type Сonfig struct {
 	PostgresPort       int    `env:"POSTGRES_PORT" envDefault:"5432"`
 	PostgresDb         string `env:"POSTGRES_DB" envDefault:"postgres"`
 	PostgresSSLDisable bool   `env:"POSTGRES_SSL_DISABLE" envDefault:"false"`
+
+	GeneratePrices bool `env:"GENERATE_PRICES" envDefault:"false"`
 }

@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"github.com/caarlos0/env/v6"
 	"github.com/evleria/PriceService/internal/config"
+	"github.com/evleria/PriceService/internal/generator"
 	grpcService "github.com/evleria/PriceService/internal/handler"
+	"github.com/evleria/PriceService/internal/producer"
 	"github.com/evleria/PriceService/internal/repository"
 	"github.com/evleria/PriceService/internal/service"
 	"github.com/evleria/PriceService/protocol/pb"
+	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v4"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -23,8 +26,20 @@ func main() {
 	db := getPostgres(cfg)
 	defer db.Close(context.Background())
 
+	redisClient := getRedis(cfg)
+	defer redisClient.Close()
+
 	positionRepository := repository.NewPositionService(db)
-	positionService := service.NewPositionService(positionRepository)
+	priceProducer := producer.NewProducerPrice(redisClient)
+	priceGenerator := generator.NewPricesGenerator(priceProducer)
+	positionService := service.NewPositionService(positionRepository, priceProducer)
+
+	if cfg.GeneratePrices {
+		go func() {
+			err := priceGenerator.GeneratePrices(context.Background())
+			check(err)
+		}()
+	}
 
 	biddingService := grpcService.NewBiddingService(positionService)
 	startGrpcServer(biddingService, ":6000")
@@ -61,6 +76,19 @@ func getPostgresConnectionString(cfg *config.Сonfig) string {
 		conn += "?sslmode=disable"
 	}
 	return conn
+}
+
+func getRedis(cfg *config.Сonfig) *redis.Client {
+	opts := &redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", cfg.RedisHost, cfg.RedisPort),
+		Password: cfg.RedisPass,
+	}
+
+	redisClient := redis.NewClient(opts)
+	_, err := redisClient.Ping(context.Background()).Result()
+	check(err)
+
+	return redisClient
 }
 
 func check(err error) {

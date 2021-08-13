@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/evleria/PriceService/internal/producer"
 	"github.com/evleria/PriceService/internal/repository"
 )
 
@@ -10,12 +11,14 @@ type Position interface {
 }
 
 type position struct {
-	repository repository.Position
+	repository    repository.Position
+	priceProducer producer.Price
 }
 
-func NewPositionService(positionRepository repository.Position) Position {
+func NewPositionService(positionRepository repository.Position, priceProducer producer.Price) Position {
 	return &position{
-		repository: positionRepository,
+		repository:    positionRepository,
+		priceProducer: priceProducer,
 	}
 }
 
