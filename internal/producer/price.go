@@ -2,7 +2,6 @@ package producer
 
 import (
 	"context"
-	"fmt"
 	"github.com/evleria/PriceService/internal/model"
 	"github.com/go-redis/redis/v8"
 )
@@ -22,7 +21,6 @@ func NewProducerPrice(redisClient *redis.Client) Price {
 }
 
 func (p *price) Produce(ctx context.Context, price model.Price) error {
-	fmt.Println("producing message", price)
 	args := &redis.XAddArgs{
 		Stream: "prices",
 		Values: map[string]interface{}{

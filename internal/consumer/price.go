@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/evleria/PriceService/internal/model"
+	"github.com/evleria/PriceService/internal/repository"
 	"github.com/go-redis/redis/v8"
 	"strconv"
 	"time"
@@ -16,12 +17,17 @@ type Price interface {
 
 type price struct {
 	redis          *redis.Client
+	repository     repository.Price
 	warmupDuration time.Duration
 }
 
-func NewPriceConsumer(redisClient *redis.Client, warmupDuration time.Duration) Price {
+func NewPriceConsumer(
+	redisClient *redis.Client,
+	priceRepository repository.Price,
+	warmupDuration time.Duration) Price {
 	return &price{
 		redis:          redisClient,
+		repository:     priceRepository,
 		warmupDuration: warmupDuration,
 	}
 }
@@ -36,13 +42,12 @@ func (p *price) Consume(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		fmt.Println("xread performed with", id)
 		for _, message := range r[0].Messages {
 			price, err := decodeMessage(message.Values)
 			if err != nil {
 				return err
 			}
-			fmt.Println(price)
+			p.repository.UpdatePrice(price)
 
 			id = message.ID
 		}

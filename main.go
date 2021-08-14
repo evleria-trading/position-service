@@ -31,6 +31,7 @@ func main() {
 	defer redisClient.Close()
 
 	positionRepository := repository.NewPositionService(db)
+	priceRepository := repository.NewPriceRepository()
 	priceProducer := producer.NewProducerPrice(redisClient)
 	priceGenerator := generator.NewPricesGenerator(priceProducer, cfg.GenerationRate)
 	positionService := service.NewPositionService(positionRepository, priceProducer)
@@ -42,7 +43,7 @@ func main() {
 		}()
 	}
 
-	priceConsumer := consumer.NewPriceConsumer(redisClient, cfg.ConsumerWarmup)
+	priceConsumer := consumer.NewPriceConsumer(redisClient, priceRepository, cfg.ConsumerWarmup)
 	go func() {
 		err := priceConsumer.Consume(context.Background())
 		check(err)
