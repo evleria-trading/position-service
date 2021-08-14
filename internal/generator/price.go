@@ -15,11 +15,13 @@ type Price interface {
 
 type price struct {
 	pricesProducer producer.Price
+	rate           time.Duration
 }
 
-func NewPricesGenerator(pricesProducer producer.Price) Price {
+func NewPricesGenerator(pricesProducer producer.Price, rate time.Duration) Price {
 	return &price{
 		pricesProducer: pricesProducer,
+		rate:           rate,
 	}
 }
 
@@ -37,7 +39,7 @@ func (g *price) GeneratePrices(ctx context.Context) error {
 	m := map[string]model.Price{}
 	for {
 		select {
-		case <-time.After(time.Millisecond * 250):
+		case <-time.After(g.rate):
 			s := symbols[rand.Intn(len(symbols))]
 			var p model.Price
 			if prev, ok := m[s]; ok {

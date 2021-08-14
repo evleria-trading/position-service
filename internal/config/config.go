@@ -1,5 +1,7 @@
 package config
 
+import "time"
+
 type Сonfig struct {
 	RedisPass string `env:"REDIS_PASS" envDefault:""`
 	RedisHost string `env:"REDIS_HOST" envDefault:"localhost"`
@@ -7,10 +9,13 @@ type Сonfig struct {
 
 	PostgresUser       string `env:"POSTGRES_USER" envDefault:"postgres"`
 	PostgresPass       string `env:"POSTGRES_PASSWORD" envDefault:""`
-	PostgresHost       string `env:"POSTGRES_HOST" envDefault:"127.0.0.1"`
+	PostgresHost       string `env:"POSTGRES_HOST" envDefault:"localhost"`
 	PostgresPort       int    `env:"POSTGRES_PORT" envDefault:"5432"`
 	PostgresDb         string `env:"POSTGRES_DB" envDefault:"postgres"`
 	PostgresSSLDisable bool   `env:"POSTGRES_SSL_DISABLE" envDefault:"false"`
 
-	GeneratePrices bool `env:"GENERATE_PRICES" envDefault:"false"`
+	GeneratePrices bool          `env:"GENERATE_PRICES" envDefault:"true"`
+	GenerationRate time.Duration `env:"GENERATION_RATE" envDefault:"250ms"`
+
+	ConsumerWarmup time.Duration `env:"CONSUMER_WARMUP" envDefault:"5m"`
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/caarlos0/env/v6"
 	"github.com/evleria/PriceService/internal/config"
+	"github.com/evleria/PriceService/internal/consumer"
 	"github.com/evleria/PriceService/internal/generator"
 	grpcService "github.com/evleria/PriceService/internal/handler"
 	"github.com/evleria/PriceService/internal/producer"
@@ -31,7 +32,7 @@ func main() {
 
 	positionRepository := repository.NewPositionService(db)
 	priceProducer := producer.NewProducerPrice(redisClient)
-	priceGenerator := generator.NewPricesGenerator(priceProducer)
+	priceGenerator := generator.NewPricesGenerator(priceProducer, cfg.GenerationRate)
 	positionService := service.NewPositionService(positionRepository, priceProducer)
 
 	if cfg.GeneratePrices {
@@ -40,6 +41,12 @@ func main() {
 			check(err)
 		}()
 	}
+
+	priceConsumer := consumer.NewPriceConsumer(redisClient, cfg.ConsumerWarmup)
+	go func() {
+		err := priceConsumer.Consume(context.Background())
+		check(err)
+	}()
 
 	biddingService := grpcService.NewBiddingService(positionService)
 	startGrpcServer(biddingService, ":6000")
@@ -53,6 +60,7 @@ func startGrpcServer(biddingService pb.BiddingServiceServer, port string) {
 	pb.RegisterBiddingServiceServer(s, biddingService)
 	reflection.Register(s)
 
+	fmt.Println("gRPC server started on", port)
 	check(s.Serve(listener))
 }
 
