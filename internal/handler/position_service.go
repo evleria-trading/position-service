@@ -30,6 +30,23 @@ func (p *PositionService) OpenPosition(ctx context.Context, request *pb.OpenPosi
 	}
 
 	return &pb.OpenPositionResponse{
-		PositionId: int64(id),
+		PositionId: id,
+	}, nil
+}
+
+func (p *PositionService) ClosePosition(ctx context.Context, request *pb.ClosePositionRequest) (*pb.ClosePositionResponse, error) {
+	profit, err := p.service.ClosePosition(ctx, request.PositionId)
+	if err != nil {
+		if err == service.ErrPriceNotFound || err == service.ErrPositionNotFound {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		if err == service.ErrPositionClosed {
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
+		}
+		return nil, err
+	}
+
+	return &pb.ClosePositionResponse{
+		Profit: profit,
 	}, nil
 }

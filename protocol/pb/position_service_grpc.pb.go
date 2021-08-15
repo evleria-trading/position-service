@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PositionServiceClient interface {
 	OpenPosition(ctx context.Context, in *OpenPositionRequest, opts ...grpc.CallOption) (*OpenPositionResponse, error)
+	ClosePosition(ctx context.Context, in *ClosePositionRequest, opts ...grpc.CallOption) (*ClosePositionResponse, error)
 }
 
 type positionServiceClient struct {
@@ -38,11 +39,21 @@ func (c *positionServiceClient) OpenPosition(ctx context.Context, in *OpenPositi
 	return out, nil
 }
 
+func (c *positionServiceClient) ClosePosition(ctx context.Context, in *ClosePositionRequest, opts ...grpc.CallOption) (*ClosePositionResponse, error) {
+	out := new(ClosePositionResponse)
+	err := c.cc.Invoke(ctx, "/PositionService/ClosePosition", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PositionServiceServer is the server API for PositionService service.
 // All implementations must embed UnimplementedPositionServiceServer
 // for forward compatibility
 type PositionServiceServer interface {
 	OpenPosition(context.Context, *OpenPositionRequest) (*OpenPositionResponse, error)
+	ClosePosition(context.Context, *ClosePositionRequest) (*ClosePositionResponse, error)
 	mustEmbedUnimplementedPositionServiceServer()
 }
 
@@ -52,6 +63,9 @@ type UnimplementedPositionServiceServer struct {
 
 func (UnimplementedPositionServiceServer) OpenPosition(context.Context, *OpenPositionRequest) (*OpenPositionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OpenPosition not implemented")
+}
+func (UnimplementedPositionServiceServer) ClosePosition(context.Context, *ClosePositionRequest) (*ClosePositionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClosePosition not implemented")
 }
 func (UnimplementedPositionServiceServer) mustEmbedUnimplementedPositionServiceServer() {}
 
@@ -84,6 +98,24 @@ func _PositionService_OpenPosition_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PositionService_ClosePosition_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClosePositionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PositionServiceServer).ClosePosition(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/PositionService/ClosePosition",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PositionServiceServer).ClosePosition(ctx, req.(*ClosePositionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PositionService_ServiceDesc is the grpc.ServiceDesc for PositionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -94,6 +126,10 @@ var PositionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OpenPosition",
 			Handler:    _PositionService_OpenPosition_Handler,
+		},
+		{
+			MethodName: "ClosePosition",
+			Handler:    _PositionService_ClosePosition_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

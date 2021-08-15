@@ -7,10 +7,15 @@ import (
 	"github.com/evleria/PriceService/internal/repository"
 )
 
-var ErrPriceNotFound = errors.New("price not found")
+var (
+	ErrPriceNotFound    = errors.New("price not found")
+	ErrPositionNotFound = errors.New("position not found")
+	ErrPositionClosed   = errors.New("position closed")
+)
 
 type Position interface {
-	AddPosition(ctx context.Context, symbol string, isBuyType bool) (int, error)
+	AddPosition(ctx context.Context, symbol string, isBuyType bool) (int64, error)
+	ClosePosition(ctx context.Context, id int64) (float64, error)
 }
 
 type position struct {
@@ -25,7 +30,7 @@ func NewPositionService(positionRepository repository.Position, priceRepository 
 	}
 }
 
-func (p *position) AddPosition(ctx context.Context, symbol string, isBuyType bool) (int, error) {
+func (p *position) AddPosition(ctx context.Context, symbol string, isBuyType bool) (int64, error) {
 	price, err := p.priceRepository.GetPrice(symbol)
 	if err != nil {
 		return 0, ErrPriceNotFound
@@ -35,8 +40,41 @@ func (p *position) AddPosition(ctx context.Context, symbol string, isBuyType boo
 	return p.positionRepository.CreatePosition(ctx, openPrice, symbol, isBuyType)
 }
 
-func getPrice(price model.Price, isBuyType bool) float64 {
-	if isBuyType {
+func (p *position) ClosePosition(ctx context.Context, id int64) (float64, error) {
+	pos, err := p.positionRepository.GetPositionByID(ctx, id)
+	if err != nil {
+		if err == repository.ErrPositionNotFound {
+			return 0, ErrPositionNotFound
+		}
+		return 0, err
+	}
+
+	if pos.IsClosed() {
+		return 0, ErrPositionClosed
+	}
+
+	price, err := p.priceRepository.GetPrice(pos.Symbol)
+	if err != nil {
+		return 0, ErrPriceNotFound
+	}
+
+	closePrice := getPrice(price, !pos.IsBuyType)
+	err = p.positionRepository.ClosePosition(ctx, id, closePrice)
+	if err != nil {
+		if err == repository.ErrPositionAlreadyClosed {
+			return 0, ErrPositionClosed
+		}
+		return 0, err
+	}
+
+	if pos.IsBuyType {
+		return closePrice - pos.AddPrice, nil
+	}
+	return pos.AddPrice - closePrice, nil
+}
+
+func getPrice(price model.Price, isBuy bool) float64 {
+	if isBuy {
 		return price.Ask
 	}
 	return price.Bid
