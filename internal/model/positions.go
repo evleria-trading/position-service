@@ -8,4 +8,5 @@ type Position struct {
 	ClosePrice float64   `db:"close_price"`
 	Symbol     string    `db:"symbol"`
 	OpenedAt   time.Time `db:"opened_at"`
+	IsBuyType  bool      `db:"is_buy_type"`
 }

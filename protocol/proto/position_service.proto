@@ -1,0 +1,16 @@
+syntax="proto3";
+
+option go_package = "/pb";
+
+service PositionService {
+  rpc OpenPosition (OpenPositionRequest) returns (OpenPositionResponse) {}
+}
+
+message OpenPositionRequest {
+  string symbol = 1;
+  bool is_buy_type = 2;
+}
+
+message OpenPositionResponse {
+  int64 position_id = 1;
+}

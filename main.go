@@ -34,7 +34,7 @@ func main() {
 	priceRepository := repository.NewPriceRepository()
 	priceProducer := producer.NewProducerPrice(redisClient)
 	priceGenerator := generator.NewPricesGenerator(priceProducer, cfg.GenerationRate)
-	positionService := service.NewPositionService(positionRepository, priceProducer)
+	positionService := service.NewPositionService(positionRepository, priceRepository)
 
 	if cfg.GeneratePrices {
 		go func() {
@@ -53,12 +53,12 @@ func main() {
 	startGrpcServer(biddingService, ":6000")
 }
 
-func startGrpcServer(biddingService pb.BiddingServiceServer, port string) {
+func startGrpcServer(biddingService pb.PositionServiceServer, port string) {
 	listener, err := net.Listen("tcp", port)
 	check(err)
 
 	s := grpc.NewServer()
-	pb.RegisterBiddingServiceServer(s, biddingService)
+	pb.RegisterPositionServiceServer(s, biddingService)
 	reflection.Register(s)
 
 	fmt.Println("gRPC server started on", port)

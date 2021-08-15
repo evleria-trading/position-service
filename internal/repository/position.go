@@ -6,7 +6,7 @@ import (
 )
 
 type Position interface {
-	CreatePosition(ctx context.Context) (int, error)
+	CreatePosition(ctx context.Context, openPrice float64, symbol string, isBuyType bool) (int, error)
 }
 
 type position struct {
@@ -19,8 +19,13 @@ func NewPositionService(db *pgx.Conn) Position {
 	}
 }
 
-func (p *position) CreatePosition(ctx context.Context) (int, error) {
+func (p *position) CreatePosition(ctx context.Context, openPrice float64, symbol string, isBuyType bool) (int, error) {
 	var id int
-	err := p.db.QueryRow(ctx, `INSERT INTO positions DEFAULT VALUES RETURNING position_id`).Scan(&id)
+	err := p.db.QueryRow(
+		ctx,
+		`INSERT INTO positions (add_price, symbol, is_buy_type) VALUES ($1, $2, $3) RETURNING position_id;`,
+		openPrice,
+		symbol,
+		isBuyType).Scan(&id)
 	return id, err
 }

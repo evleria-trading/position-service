@@ -2,27 +2,42 @@ package service
 
 import (
 	"context"
-	"github.com/evleria/PriceService/internal/producer"
+	"errors"
+	"github.com/evleria/PriceService/internal/model"
 	"github.com/evleria/PriceService/internal/repository"
 )
 
+var ErrPriceNotFound = errors.New("price not found")
+
 type Position interface {
-	AddPosition(ctx context.Context, price float64) (int, error)
+	AddPosition(ctx context.Context, symbol string, isBuyType bool) (int, error)
 }
 
 type position struct {
-	repository    repository.Position
-	priceProducer producer.Price
+	positionRepository repository.Position
+	priceRepository    repository.Price
 }
 
-func NewPositionService(positionRepository repository.Position, priceProducer producer.Price) Position {
+func NewPositionService(positionRepository repository.Position, priceRepository repository.Price) Position {
 	return &position{
-		repository:    positionRepository,
-		priceProducer: priceProducer,
+		positionRepository: positionRepository,
+		priceRepository:    priceRepository,
 	}
 }
 
-func (p *position) AddPosition(ctx context.Context, price float64) (int, error) {
-	id, err := p.repository.CreatePosition(ctx)
-	return id, err
+func (p *position) AddPosition(ctx context.Context, symbol string, isBuyType bool) (int, error) {
+	price, err := p.priceRepository.GetPrice(symbol)
+	if err != nil {
+		return 0, ErrPriceNotFound
+	}
+
+	openPrice := getPrice(price, isBuyType)
+	return p.positionRepository.CreatePosition(ctx, openPrice, symbol, isBuyType)
+}
+
+func getPrice(price model.Price, isBuyType bool) float64 {
+	if isBuyType {
+		return price.Ask
+	}
+	return price.Bid
 }
