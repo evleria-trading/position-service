@@ -12,11 +12,12 @@ var (
 	ErrPriceNotFound    = errors.New("price not found")
 	ErrPositionNotFound = errors.New("position not found")
 	ErrPositionClosed   = errors.New("position closed")
+	ErrPriceChanged     = errors.New("price is changed")
 )
 
 type Position interface {
-	AddPosition(ctx context.Context, symbol string, isBuyType bool) (int64, error)
-	ClosePosition(ctx context.Context, id int64) (float64, error)
+	AddPosition(ctx context.Context, symbol string, isBuyType bool, priceId string) (int64, error)
+	ClosePosition(ctx context.Context, positionId int64, priceId string) (float64, error)
 }
 
 type position struct {
@@ -31,10 +32,14 @@ func NewPositionService(positionRepository repository.Position, priceRepository 
 	}
 }
 
-func (p *position) AddPosition(ctx context.Context, symbol string, isBuyType bool) (int64, error) {
+func (p *position) AddPosition(ctx context.Context, symbol string, isBuyType bool, priceId string) (int64, error) {
 	price, err := p.priceRepository.GetPrice(symbol)
 	if err != nil {
 		return 0, ErrPriceNotFound
+	}
+
+	if price.Id != priceId {
+		return 0, ErrPriceChanged
 	}
 
 	openPrice := getPrice(price, isBuyType)
@@ -47,8 +52,8 @@ func (p *position) AddPosition(ctx context.Context, symbol string, isBuyType boo
 	return id, nil
 }
 
-func (p *position) ClosePosition(ctx context.Context, id int64) (float64, error) {
-	pos, err := p.positionRepository.GetPositionByID(ctx, id)
+func (p *position) ClosePosition(ctx context.Context, positionId int64, priceId string) (float64, error) {
+	pos, err := p.positionRepository.GetPositionByID(ctx, positionId)
 	if err != nil {
 		if err == repository.ErrPositionNotFound {
 			return 0, ErrPositionNotFound
@@ -65,8 +70,12 @@ func (p *position) ClosePosition(ctx context.Context, id int64) (float64, error)
 		return 0, ErrPriceNotFound
 	}
 
+	if price.Id != priceId {
+		return 0, ErrPriceChanged
+	}
+
 	closePrice := getPrice(price, !pos.IsBuyType)
-	err = p.positionRepository.ClosePosition(ctx, id, closePrice)
+	err = p.positionRepository.ClosePosition(ctx, positionId, closePrice)
 	if err != nil {
 		if err == repository.ErrPositionAlreadyClosed {
 			return 0, ErrPositionClosed
@@ -74,7 +83,7 @@ func (p *position) ClosePosition(ctx context.Context, id int64) (float64, error)
 		return 0, err
 	}
 
-	log.WithFields(log.Fields{"id": id}).Info("Closed position")
+	log.WithFields(log.Fields{"id": positionId}).Info("Closed position")
 	if pos.IsBuyType {
 		return closePrice - pos.AddPrice, nil
 	}

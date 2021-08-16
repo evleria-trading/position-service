@@ -20,13 +20,16 @@ func NewPositionService(positionService service.Position) pb.PositionServiceServ
 }
 
 func (p *PositionService) OpenPosition(ctx context.Context, request *pb.OpenPositionRequest) (*pb.OpenPositionResponse, error) {
-	id, err := p.service.AddPosition(ctx, request.Symbol, request.IsBuyType)
+	id, err := p.service.AddPosition(ctx, request.Symbol, request.IsBuyType, request.PriceId)
 	if err != nil {
-		if err == service.ErrPriceNotFound {
+		switch err {
+		case service.ErrPriceNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
+		case service.ErrPriceChanged:
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
 		}
-
-		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &pb.OpenPositionResponse{
@@ -35,15 +38,18 @@ func (p *PositionService) OpenPosition(ctx context.Context, request *pb.OpenPosi
 }
 
 func (p *PositionService) ClosePosition(ctx context.Context, request *pb.ClosePositionRequest) (*pb.ClosePositionResponse, error) {
-	profit, err := p.service.ClosePosition(ctx, request.PositionId)
+	profit, err := p.service.ClosePosition(ctx, request.PositionId, request.PriceId)
 	if err != nil {
-		if err == service.ErrPriceNotFound || err == service.ErrPositionNotFound {
+		switch err {
+		case service.ErrPriceNotFound, service.ErrPositionNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
-		}
-		if err == service.ErrPositionClosed {
+		case service.ErrPositionClosed:
 			return nil, status.Error(codes.FailedPrecondition, err.Error())
+		case service.ErrPriceChanged:
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
 		}
-		return nil, err
 	}
 
 	return &pb.ClosePositionResponse{

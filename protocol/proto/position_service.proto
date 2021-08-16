@@ -10,6 +10,7 @@ service PositionService {
 message OpenPositionRequest {
   string symbol = 1;
   bool is_buy_type = 2;
+  string price_id = 3;
 }
 
 message OpenPositionResponse {
@@ -18,6 +19,7 @@ message OpenPositionResponse {
 
 message ClosePositionRequest {
   int64 position_id = 1;
+  string price_id = 2;
 }
 
 message ClosePositionResponse {
