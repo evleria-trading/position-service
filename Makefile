@@ -11,4 +11,4 @@ protoc:
 grpcui:
 	grpcui -plaintext localhost:$(PORT)
 
-.PHONY: compose-build, compose-up, compose-down, lint, import, protoc, grpcui
+.PHONY: compose, compose-down, lint, import, protoc, grpcui

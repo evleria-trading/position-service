@@ -13,7 +13,7 @@ type PositionService struct {
 	service service.Position
 }
 
-func NewBiddingService(positionService service.Position) pb.PositionServiceServer {
+func NewPositionService(positionService service.Position) pb.PositionServiceServer {
 	return &PositionService{
 		service: positionService,
 	}

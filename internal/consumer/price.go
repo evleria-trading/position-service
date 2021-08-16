@@ -44,34 +44,41 @@ func (p *price) Consume(ctx context.Context) error {
 			return err
 		}
 		for _, message := range r[0].Messages {
-			price, err := decodeMessage(message.Values)
+			pr, err := decodeMessage(message)
 			if err != nil {
 				return err
 			}
-			log.WithFields(message.Values).Debug("Consumed price message")
-			p.repository.UpdatePrice(price)
+
+			log.WithFields(log.Fields{
+				"id":     pr.Id,
+				"symbol": pr.Symbol,
+				"ask":    pr.Ask,
+				"bid":    pr.Bid,
+			}).Debug("Consumed price message")
+			p.repository.UpdatePrice(pr)
 
 			id = message.ID
 		}
 	}
 }
 
-func decodeMessage(values map[string]interface{}) (model.Price, error) {
-	symbol, err := decodeString(values["symbol"])
+func decodeMessage(message redis.XMessage) (model.Price, error) {
+	symbol, err := decodeString(message.Values["symbol"])
 	if err != nil {
 		return model.Price{}, err
 	}
 
-	ask, err := decodeFloat64(values["ask"])
+	ask, err := decodeFloat64(message.Values["ask"])
 	if err != nil {
 		return model.Price{}, err
 	}
 
-	bid, err := decodeFloat64(values["bid"])
+	bid, err := decodeFloat64(message.Values["bid"])
 	if err != nil {
 		return model.Price{}, err
 	}
 	return model.Price{
+		Id:     message.ID,
 		Symbol: symbol,
 		Ask:    ask,
 		Bid:    bid,

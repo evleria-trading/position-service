@@ -1,33 +1,39 @@
 services:
-  backend-0:
-   build: .
-   ports:
-    - "5001:5000"
-    - "6001:6000"
-   depends_on:
-    - postgres
-    - redis
-   command: sh -c "/wait && /server"
-   environment:
-    - POSTGRES_HOST=postgres
-    - REDIS_HOST=redis
-    - ENVIRONMENT=prod
-    - WAIT_HOSTS=postgres:5432
+  price-service:
+    image: "evleria/price-service:v0.0.1"
+    depends_on:
+      - redis
+    environment:
+      - ENVIRONMENT=prod
+      - REDIS_HOST=redis
 
-  backend-1:
+  position-service-0:
     build: .
     ports:
-      - "5002:5000"
+      - "6001:6000"
+    depends_on:
+      - postgres
+      - redis
+    command: sh -c "/wait && /server"
+    environment:
+      - ENVIRONMENT=prod
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - WAIT_HOSTS=postgres:5432
+
+  position-service-1:
+    build: .
+    ports:
       - "6002:6000"
     depends_on:
-    - postgres
-    - redis
+      - postgres
+      - redis
+    command: sh -c "/wait && /server"
     environment:
-    - POSTGRES_HOST=postgres
-    - REDIS_HOST=redis
-    - ENVIRONMENT=prod
-    - GENERATE_PRICES=false
-    - WAIT_HOSTS=postgres:5432
+      - ENVIRONMENT=prod
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - WAIT_HOSTS=postgres:5432
 
   redis:
     image: "redis:6-alpine"

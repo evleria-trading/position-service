@@ -6,9 +6,7 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/evleria/position-service/internal/config"
 	"github.com/evleria/position-service/internal/consumer"
-	"github.com/evleria/position-service/internal/generator"
 	grpcService "github.com/evleria/position-service/internal/handler"
-	"github.com/evleria/position-service/internal/producer"
 	"github.com/evleria/position-service/internal/repository"
 	"github.com/evleria/position-service/internal/service"
 	"github.com/evleria/position-service/protocol/pb"
@@ -34,16 +32,7 @@ func main() {
 
 	positionRepository := repository.NewPositionService(db)
 	priceRepository := repository.NewPriceRepository()
-	priceProducer := producer.NewProducerPrice(redisClient)
-	priceGenerator := generator.NewPricesGenerator(priceProducer, cfg.GenerationRate)
 	positionService := service.NewPositionService(positionRepository, priceRepository)
-
-	if cfg.GeneratePrices {
-		go func() {
-			err := priceGenerator.GeneratePrices(context.Background())
-			check(err)
-		}()
-	}
 
 	priceConsumer := consumer.NewPriceConsumer(redisClient, priceRepository, cfg.ConsumerWarmup)
 	go func() {
@@ -51,8 +40,7 @@ func main() {
 		check(err)
 	}()
 
-	biddingService := grpcService.NewBiddingService(positionService)
-	startGrpcServer(biddingService, ":6000")
+	startGrpcServer(grpcService.NewPositionService(positionService), ":6000")
 }
 
 func startGrpcServer(biddingService pb.PositionServiceServer, port string) {
