@@ -2,9 +2,12 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/evleria/position-service/internal/model"
 	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -16,16 +19,18 @@ type Position interface {
 	CreatePosition(ctx context.Context, openPrice float64, symbol string, isBuyType bool) (int64, error)
 	GetPositionByID(ctx context.Context, id int64) (*model.Position, error)
 	ClosePosition(ctx context.Context, id int64, closePrice float64) error
+	ListenNotifications(ctx context.Context) (chan model.Position, chan model.Position, error)
 }
 
 type position struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewPositionService(db *pgx.Conn) Position {
-	return &position{
+func NewPositionRepository(db *pgxpool.Pool) Position {
+	res := &position{
 		db: db,
 	}
+	return res
 }
 
 func (p *position) CreatePosition(ctx context.Context, openPrice float64, symbol string, isBuyType bool) (int64, error) {
@@ -62,4 +67,50 @@ func (p *position) ClosePosition(ctx context.Context, id int64, closePrice float
 		return ErrPositionAlreadyClosed
 	}
 	return nil
+}
+
+func (p *position) ListenNotifications(ctx context.Context) (openedChan chan model.Position, closedChan chan model.Position, err error) {
+	conn, err := p.db.Acquire(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	_, err = conn.Exec(ctx, "LISTEN notify_position_opened;")
+	if err != nil {
+		return nil, nil, err
+	}
+	_, err = conn.Exec(ctx, "LISTEN notify_position_closed;")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	openedChan = make(chan model.Position)
+	closedChan = make(chan model.Position)
+
+	go func() {
+		for {
+			notification, err := conn.Conn().WaitForNotification(ctx)
+			if err != nil {
+				log.Error(err)
+			} else {
+				pos, err := decodePosition(notification.Payload)
+				if err != nil {
+					log.Error(err)
+				}
+				switch notification.Channel {
+				case "notify_position_opened":
+					openedChan <- pos
+				case "notify_position_closed":
+					closedChan <- pos
+				}
+			}
+		}
+	}()
+
+	return openedChan, closedChan, nil
+}
+
+func decodePosition(payload string) (model.Position, error) {
+	pos := model.Position{}
+	err := json.Unmarshal([]byte(payload), &pos)
+	return pos, err
 }

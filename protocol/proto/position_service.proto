@@ -5,6 +5,7 @@ option go_package = "/pb";
 service PositionService {
   rpc OpenPosition (OpenPositionRequest) returns (OpenPositionResponse) {}
   rpc ClosePosition (ClosePositionRequest) returns (ClosePositionResponse) {}
+  rpc GetOpenPosition (GetOpenPositionRequest) returns (GetOpenPositionResponse) {}
 }
 
 message OpenPositionRequest {
@@ -24,4 +25,14 @@ message ClosePositionRequest {
 
 message ClosePositionResponse {
   double profit = 1;
+}
+
+message GetOpenPositionRequest {
+  int64 position_id = 1;
+}
+
+message GetOpenPositionResponse {
+  double add_price = 1;
+  string symbol = 2;
+  bool is_buy_type = 3;
 }

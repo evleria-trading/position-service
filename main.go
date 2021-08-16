@@ -11,7 +11,7 @@ import (
 	"github.com/evleria/position-service/internal/service"
 	"github.com/evleria/position-service/protocol/pb"
 	"github.com/go-redis/redis/v8"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -25,19 +25,30 @@ func main() {
 	setupLogger(cfg.Environment)
 
 	db := getPostgres(cfg)
-	defer db.Close(context.Background())
+	defer db.Close()
 
 	redisClient := getRedis(cfg)
 	defer redisClient.Close()
 
-	positionRepository := repository.NewPositionService(db)
+	positionRepository := repository.NewPositionRepository(db)
 	priceRepository := repository.NewPriceRepository()
 	positionService := service.NewPositionService(positionRepository, priceRepository)
-
 	priceConsumer := consumer.NewPriceConsumer(redisClient, priceRepository, cfg.ConsumerWarmup)
+	pricesChan := priceConsumer.Consume(context.Background())
+	openedChan, closedChan, err := positionRepository.ListenNotifications(context.Background())
+	check(err)
+
 	go func() {
-		err := priceConsumer.Consume(context.Background())
-		check(err)
+		for {
+			select {
+			case pr := <-pricesChan:
+				log.Infof("New price changed message received %#v", pr)
+			case pos := <-openedChan:
+				log.Infof("New position opened message received %#v", pos)
+			case pos := <-closedChan:
+				log.Infof("New position closed message received %#v", pos)
+			}
+		}
 	}()
 
 	startGrpcServer(grpcService.NewPositionService(positionService), ":6000")
@@ -65,9 +76,10 @@ func setupLogger(environment string) {
 	}
 }
 
-func getPostgres(cfg *config.Сonfig) *pgx.Conn {
+func getPostgres(cfg *config.Сonfig) *pgxpool.Pool {
 	dbURL := getPostgresConnectionString(cfg)
-	db, err := pgx.Connect(context.Background(), dbURL)
+
+	db, err := pgxpool.Connect(context.Background(), dbURL)
 	check(err)
 
 	return db

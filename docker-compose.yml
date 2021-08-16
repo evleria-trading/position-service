@@ -6,6 +6,7 @@ services:
     environment:
       - ENVIRONMENT=prod
       - REDIS_HOST=redis
+      - GENERATION_RATE=1s
 
   position-service-0:
     build: .

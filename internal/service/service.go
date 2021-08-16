@@ -18,6 +18,7 @@ var (
 type Position interface {
 	AddPosition(ctx context.Context, symbol string, isBuyType bool, priceId string) (int64, error)
 	ClosePosition(ctx context.Context, positionId int64, priceId string) (float64, error)
+	GetOpenPosition(ctx context.Context, positionId int64) (*model.Position, error)
 }
 
 type position struct {
@@ -88,6 +89,21 @@ func (p *position) ClosePosition(ctx context.Context, positionId int64, priceId 
 		return closePrice - pos.AddPrice, nil
 	}
 	return pos.AddPrice - closePrice, nil
+}
+
+func (p *position) GetOpenPosition(ctx context.Context, positionId int64) (*model.Position, error) {
+	pos, err := p.positionRepository.GetPositionByID(ctx, positionId)
+	if err != nil {
+		if err == repository.ErrPositionNotFound {
+			return nil, ErrPositionNotFound
+		}
+		return nil, err
+	}
+
+	if pos.IsClosed() {
+		return nil, ErrPositionClosed
+	}
+	return pos, nil
 }
 
 func getPrice(price model.Price, isBuy bool) float64 {

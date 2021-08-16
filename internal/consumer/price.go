@@ -13,7 +13,7 @@ import (
 )
 
 type Price interface {
-	Consume(ctx context.Context) error
+	Consume(ctx context.Context) chan model.Price
 }
 
 type price struct {
@@ -33,33 +33,39 @@ func NewPriceConsumer(
 	}
 }
 
-func (p *price) Consume(ctx context.Context) error {
+func (p *price) Consume(ctx context.Context) chan model.Price {
 	id := fmt.Sprintf("%d000-0", time.Now().Add(-p.warmupDuration).Unix())
-	for {
-		args := &redis.XReadArgs{
-			Streams: []string{"prices", id},
-		}
-		r, err := p.redis.XRead(ctx, args).Result()
-		if err != nil {
-			return err
-		}
-		for _, message := range r[0].Messages {
-			pr, err := decodeMessage(message)
-			if err != nil {
-				return err
+	ch := make(chan model.Price)
+	go func() {
+		for {
+			args := &redis.XReadArgs{
+				Streams: []string{"prices", id},
 			}
+			r, err := p.redis.XRead(ctx, args).Result()
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+			for _, message := range r[0].Messages {
+				pr, err := decodeMessage(message)
+				if err != nil {
+					log.Error(err)
+					break
+				}
 
-			log.WithFields(log.Fields{
-				"id":     pr.Id,
-				"symbol": pr.Symbol,
-				"ask":    pr.Ask,
-				"bid":    pr.Bid,
-			}).Debug("Consumed price message")
-			p.repository.UpdatePrice(pr)
-
-			id = message.ID
+				log.WithFields(log.Fields{
+					"id":     pr.Id,
+					"symbol": pr.Symbol,
+					"ask":    pr.Ask,
+					"bid":    pr.Bid,
+				}).Debug("Consumed price message")
+				p.repository.UpdatePrice(pr)
+				ch <- pr
+				id = message.ID
+			}
 		}
-	}
+	}()
+	return ch
 }
 
 func decodeMessage(message redis.XMessage) (model.Price, error) {

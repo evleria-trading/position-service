@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type PositionServiceClient interface {
 	OpenPosition(ctx context.Context, in *OpenPositionRequest, opts ...grpc.CallOption) (*OpenPositionResponse, error)
 	ClosePosition(ctx context.Context, in *ClosePositionRequest, opts ...grpc.CallOption) (*ClosePositionResponse, error)
+	GetOpenPosition(ctx context.Context, in *GetOpenPositionRequest, opts ...grpc.CallOption) (*GetOpenPositionResponse, error)
 }
 
 type positionServiceClient struct {
@@ -48,12 +49,22 @@ func (c *positionServiceClient) ClosePosition(ctx context.Context, in *ClosePosi
 	return out, nil
 }
 
+func (c *positionServiceClient) GetOpenPosition(ctx context.Context, in *GetOpenPositionRequest, opts ...grpc.CallOption) (*GetOpenPositionResponse, error) {
+	out := new(GetOpenPositionResponse)
+	err := c.cc.Invoke(ctx, "/PositionService/GetOpenPosition", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PositionServiceServer is the server API for PositionService service.
 // All implementations must embed UnimplementedPositionServiceServer
 // for forward compatibility
 type PositionServiceServer interface {
 	OpenPosition(context.Context, *OpenPositionRequest) (*OpenPositionResponse, error)
 	ClosePosition(context.Context, *ClosePositionRequest) (*ClosePositionResponse, error)
+	GetOpenPosition(context.Context, *GetOpenPositionRequest) (*GetOpenPositionResponse, error)
 	mustEmbedUnimplementedPositionServiceServer()
 }
 
@@ -66,6 +77,9 @@ func (UnimplementedPositionServiceServer) OpenPosition(context.Context, *OpenPos
 }
 func (UnimplementedPositionServiceServer) ClosePosition(context.Context, *ClosePositionRequest) (*ClosePositionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClosePosition not implemented")
+}
+func (UnimplementedPositionServiceServer) GetOpenPosition(context.Context, *GetOpenPositionRequest) (*GetOpenPositionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOpenPosition not implemented")
 }
 func (UnimplementedPositionServiceServer) mustEmbedUnimplementedPositionServiceServer() {}
 
@@ -116,6 +130,24 @@ func _PositionService_ClosePosition_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PositionService_GetOpenPosition_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOpenPositionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PositionServiceServer).GetOpenPosition(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/PositionService/GetOpenPosition",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PositionServiceServer).GetOpenPosition(ctx, req.(*GetOpenPositionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PositionService_ServiceDesc is the grpc.ServiceDesc for PositionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -130,6 +162,10 @@ var PositionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClosePosition",
 			Handler:    _PositionService_ClosePosition_Handler,
+		},
+		{
+			MethodName: "GetOpenPosition",
+			Handler:    _PositionService_GetOpenPosition_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
