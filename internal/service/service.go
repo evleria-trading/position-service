@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/evleria/PriceService/internal/model"
 	"github.com/evleria/PriceService/internal/repository"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -37,7 +38,13 @@ func (p *position) AddPosition(ctx context.Context, symbol string, isBuyType boo
 	}
 
 	openPrice := getPrice(price, isBuyType)
-	return p.positionRepository.CreatePosition(ctx, openPrice, symbol, isBuyType)
+	id, err := p.positionRepository.CreatePosition(ctx, openPrice, symbol, isBuyType)
+	if err != nil {
+		return 0, err
+	}
+
+	log.WithFields(log.Fields{"id": id}).Info("Created position")
+	return id, nil
 }
 
 func (p *position) ClosePosition(ctx context.Context, id int64) (float64, error) {
@@ -67,6 +74,7 @@ func (p *position) ClosePosition(ctx context.Context, id int64) (float64, error)
 		return 0, err
 	}
 
+	log.WithFields(log.Fields{"id": id}).Info("Closed position")
 	if pos.IsBuyType {
 		return closePrice - pos.AddPrice, nil
 	}

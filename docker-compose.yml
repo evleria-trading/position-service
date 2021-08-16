@@ -11,6 +11,7 @@ services:
    environment:
     - POSTGRES_HOST=postgres
     - REDIS_HOST=redis
+    - ENVIRONMENT=prod
     - WAIT_HOSTS=postgres:5432
 
   backend-1:
@@ -24,8 +25,9 @@ services:
     environment:
     - POSTGRES_HOST=postgres
     - REDIS_HOST=redis
-    - WAIT_HOSTS=postgres:5432
+    - ENVIRONMENT=prod
     - GENERATE_PRICES=false
+    - WAIT_HOSTS=postgres:5432
 
   redis:
     image: "redis:6-alpine"

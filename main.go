@@ -14,15 +14,17 @@ import (
 	"github.com/evleria/PriceService/protocol/pb"
 	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v4"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"log"
 	"net"
 )
 
 func main() {
 	cfg := new(config.Сonfig)
 	check(env.Parse(cfg))
+
+	setupLogger(cfg.Environment)
 
 	db := getPostgres(cfg)
 	defer db.Close(context.Background())
@@ -61,8 +63,18 @@ func startGrpcServer(biddingService pb.PositionServiceServer, port string) {
 	pb.RegisterPositionServiceServer(s, biddingService)
 	reflection.Register(s)
 
-	fmt.Println("gRPC server started on", port)
+	log.Info("gRPC server started on ", port)
 	check(s.Serve(listener))
+}
+
+func setupLogger(environment string) {
+	switch environment {
+	case "prod":
+		log.SetFormatter(&log.JSONFormatter{})
+		log.SetLevel(log.InfoLevel)
+	default:
+		log.SetLevel(log.DebugLevel)
+	}
 }
 
 func getPostgres(cfg *config.Сonfig) *pgx.Conn {

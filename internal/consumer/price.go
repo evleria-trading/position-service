@@ -7,6 +7,7 @@ import (
 	"github.com/evleria/PriceService/internal/model"
 	"github.com/evleria/PriceService/internal/repository"
 	"github.com/go-redis/redis/v8"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
 )
@@ -47,6 +48,7 @@ func (p *price) Consume(ctx context.Context) error {
 			if err != nil {
 				return err
 			}
+			log.WithFields(message.Values).Debug("Consumed price message")
 			p.repository.UpdatePrice(price)
 
 			id = message.ID
