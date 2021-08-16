@@ -22,14 +22,7 @@ func NewPositionService(positionService service.Position) pb.PositionServiceServ
 func (p *PositionService) OpenPosition(ctx context.Context, request *pb.OpenPositionRequest) (*pb.OpenPositionResponse, error) {
 	id, err := p.service.AddPosition(ctx, request.Symbol, request.IsBuyType, request.PriceId)
 	if err != nil {
-		switch err {
-		case service.ErrPriceNotFound:
-			return nil, status.Error(codes.NotFound, err.Error())
-		case service.ErrPriceChanged:
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, err.Error())
-		}
+		return nil, status.Error(getStatusCode(err), err.Error())
 	}
 
 	return &pb.OpenPositionResponse{
@@ -40,19 +33,36 @@ func (p *PositionService) OpenPosition(ctx context.Context, request *pb.OpenPosi
 func (p *PositionService) ClosePosition(ctx context.Context, request *pb.ClosePositionRequest) (*pb.ClosePositionResponse, error) {
 	profit, err := p.service.ClosePosition(ctx, request.PositionId, request.PriceId)
 	if err != nil {
-		switch err {
-		case service.ErrPriceNotFound, service.ErrPositionNotFound:
-			return nil, status.Error(codes.NotFound, err.Error())
-		case service.ErrPositionClosed:
-			return nil, status.Error(codes.FailedPrecondition, err.Error())
-		case service.ErrPriceChanged:
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, err.Error())
-		}
+		return nil, status.Error(getStatusCode(err), err.Error())
 	}
 
 	return &pb.ClosePositionResponse{
 		Profit: profit,
 	}, nil
+}
+
+func (p *PositionService) GetOpenPosition(ctx context.Context, request *pb.GetOpenPositionRequest) (*pb.GetOpenPositionResponse, error) {
+	pos, err := p.service.GetOpenPosition(ctx, request.PositionId)
+	if err != nil {
+		return nil, status.Error(getStatusCode(err), err.Error())
+	}
+
+	return &pb.GetOpenPositionResponse{
+		AddPrice:  pos.AddPrice,
+		Symbol:    pos.Symbol,
+		IsBuyType: pos.IsBuyType,
+	}, nil
+}
+
+func getStatusCode(err error) codes.Code {
+	switch err {
+	case service.ErrPriceNotFound, service.ErrPositionNotFound:
+		return codes.NotFound
+	case service.ErrPositionClosed:
+		return codes.FailedPrecondition
+	case service.ErrPriceChanged:
+		return codes.InvalidArgument
+	default:
+		return codes.Internal
+	}
 }
