@@ -2,7 +2,7 @@ package repository
 
 import (
 	"errors"
-	"github.com/evleria/PriceService/internal/model"
+	"github.com/evleria/position-service/internal/model"
 	"sync"
 )
 

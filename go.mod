@@ -1,4 +1,4 @@
-module github.com/evleria/PriceService
+module github.com/evleria/position-service
 
 go 1.16
 

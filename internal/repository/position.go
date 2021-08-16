@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
-	"github.com/evleria/PriceService/internal/model"
+	"github.com/evleria/position-service/internal/model"
 	"github.com/jackc/pgx/v4"
 )
 

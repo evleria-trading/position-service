@@ -2,7 +2,7 @@ package producer
 
 import (
 	"context"
-	"github.com/evleria/PriceService/internal/model"
+	"github.com/evleria/position-service/internal/model"
 	"github.com/go-redis/redis/v8"
 	log "github.com/sirupsen/logrus"
 )

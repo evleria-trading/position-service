@@ -2,8 +2,8 @@ package generator
 
 import (
 	"context"
-	"github.com/evleria/PriceService/internal/model"
-	"github.com/evleria/PriceService/internal/producer"
+	"github.com/evleria/position-service/internal/model"
+	"github.com/evleria/position-service/internal/producer"
 	"math"
 	"math/rand"
 	"time"

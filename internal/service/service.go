@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/evleria/PriceService/internal/model"
-	"github.com/evleria/PriceService/internal/repository"
+	"github.com/evleria/position-service/internal/model"
+	"github.com/evleria/position-service/internal/repository"
 	log "github.com/sirupsen/logrus"
 )
 
