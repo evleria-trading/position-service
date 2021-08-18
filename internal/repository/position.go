@@ -19,6 +19,7 @@ type Position interface {
 	CreatePosition(ctx context.Context, openPrice float64, symbol string, isBuyType bool) (int64, error)
 	GetPositionByID(ctx context.Context, id int64) (*model.Position, error)
 	ClosePosition(ctx context.Context, id int64, closePrice float64) error
+	UpdateStopLoss(ctx context.Context, id int64, stopLoss float64) error
 	ListenNotifications(ctx context.Context) (chan model.Position, chan model.Position, error)
 }
 
@@ -27,10 +28,9 @@ type position struct {
 }
 
 func NewPositionRepository(db *pgxpool.Pool) Position {
-	res := &position{
+	return &position{
 		db: db,
 	}
-	return res
 }
 
 func (p *position) CreatePosition(ctx context.Context, openPrice float64, symbol string, isBuyType bool) (int64, error) {
@@ -47,7 +47,7 @@ func (p *position) CreatePosition(ctx context.Context, openPrice float64, symbol
 func (p *position) GetPositionByID(ctx context.Context, id int64) (*model.Position, error) {
 	pos := model.Position{}
 	err := p.db.QueryRow(ctx, `SELECT * FROM positions WHERE position_id=$1;`, id).
-		Scan(&pos.PositionID, &pos.AddPrice, &pos.ClosePrice, &pos.Symbol, &pos.OpenedAt, &pos.IsBuyType)
+		Scan(pos.GetFieldAddresses()...)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, ErrPositionNotFound
@@ -65,6 +65,17 @@ func (p *position) ClosePosition(ctx context.Context, id int64, closePrice float
 	}
 	if res.RowsAffected() == 0 {
 		return ErrPositionAlreadyClosed
+	}
+	return nil
+}
+
+func (p *position) UpdateStopLoss(ctx context.Context, id int64, stopLoss float64) error {
+	res, err := p.db.Exec(ctx, `UPDATE positions SET stop_loss=$1 WHERE position_id=$2 AND close_price IS NULL;`, stopLoss, id)
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected() == 0 {
+		return ErrPositionNotFound
 	}
 	return nil
 }

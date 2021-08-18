@@ -10,16 +10,18 @@ import (
 )
 
 var (
-	ErrPriceNotFound    = errors.New("price not found")
-	ErrPositionNotFound = errors.New("position not found")
-	ErrPositionClosed   = errors.New("position closed")
-	ErrPriceChanged     = errors.New("price is changed")
+	ErrPriceNotFound         = errors.New("price not found")
+	ErrPositionNotFound      = errors.New("position not found")
+	ErrPositionClosed        = errors.New("position closed")
+	ErrPriceChanged          = errors.New("price is changed")
+	ErrStopLossIsNotNegative = errors.New("stop loss is not negative")
 )
 
 type Position interface {
 	AddPosition(ctx context.Context, symbol string, isBuyType bool, priceId string) (int64, error)
 	ClosePosition(ctx context.Context, positionId int64, priceId string) (float64, error)
 	GetOpenPosition(ctx context.Context, positionId int64) (*model.Position, error)
+	SetStopLoss(ctx context.Context, positionId int64, stopLoss float64) error
 }
 
 type position struct {
@@ -102,4 +104,15 @@ func (p *position) GetOpenPosition(ctx context.Context, positionId int64) (*mode
 		return nil, ErrPositionClosed
 	}
 	return pos, nil
+}
+
+func (p *position) SetStopLoss(ctx context.Context, positionId int64, stopLoss float64) error {
+	if stopLoss >= 0 {
+		return ErrStopLossIsNotNegative
+	}
+	err := p.positionRepository.UpdateStopLoss(ctx, positionId, stopLoss)
+	if err == repository.ErrPositionNotFound {
+		return ErrPositionNotFound
+	}
+	return err
 }

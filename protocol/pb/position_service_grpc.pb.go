@@ -4,6 +4,7 @@ package pb
 
 import (
 	context "context"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -21,6 +22,7 @@ type PositionServiceClient interface {
 	OpenPosition(ctx context.Context, in *OpenPositionRequest, opts ...grpc.CallOption) (*OpenPositionResponse, error)
 	ClosePosition(ctx context.Context, in *ClosePositionRequest, opts ...grpc.CallOption) (*ClosePositionResponse, error)
 	GetOpenPosition(ctx context.Context, in *GetOpenPositionRequest, opts ...grpc.CallOption) (*GetOpenPositionResponse, error)
+	SetStopLoss(ctx context.Context, in *SetStopLossRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type positionServiceClient struct {
@@ -33,7 +35,7 @@ func NewPositionServiceClient(cc grpc.ClientConnInterface) PositionServiceClient
 
 func (c *positionServiceClient) OpenPosition(ctx context.Context, in *OpenPositionRequest, opts ...grpc.CallOption) (*OpenPositionResponse, error) {
 	out := new(OpenPositionResponse)
-	err := c.cc.Invoke(ctx, "/PositionService/OpenPosition", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.PositionService/OpenPosition", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +44,7 @@ func (c *positionServiceClient) OpenPosition(ctx context.Context, in *OpenPositi
 
 func (c *positionServiceClient) ClosePosition(ctx context.Context, in *ClosePositionRequest, opts ...grpc.CallOption) (*ClosePositionResponse, error) {
 	out := new(ClosePositionResponse)
-	err := c.cc.Invoke(ctx, "/PositionService/ClosePosition", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.PositionService/ClosePosition", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +53,16 @@ func (c *positionServiceClient) ClosePosition(ctx context.Context, in *ClosePosi
 
 func (c *positionServiceClient) GetOpenPosition(ctx context.Context, in *GetOpenPositionRequest, opts ...grpc.CallOption) (*GetOpenPositionResponse, error) {
 	out := new(GetOpenPositionResponse)
-	err := c.cc.Invoke(ctx, "/PositionService/GetOpenPosition", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.PositionService/GetOpenPosition", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *positionServiceClient) SetStopLoss(ctx context.Context, in *SetStopLossRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/pb.PositionService/SetStopLoss", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -65,6 +76,7 @@ type PositionServiceServer interface {
 	OpenPosition(context.Context, *OpenPositionRequest) (*OpenPositionResponse, error)
 	ClosePosition(context.Context, *ClosePositionRequest) (*ClosePositionResponse, error)
 	GetOpenPosition(context.Context, *GetOpenPositionRequest) (*GetOpenPositionResponse, error)
+	SetStopLoss(context.Context, *SetStopLossRequest) (*empty.Empty, error)
 	mustEmbedUnimplementedPositionServiceServer()
 }
 
@@ -80,6 +92,9 @@ func (UnimplementedPositionServiceServer) ClosePosition(context.Context, *CloseP
 }
 func (UnimplementedPositionServiceServer) GetOpenPosition(context.Context, *GetOpenPositionRequest) (*GetOpenPositionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOpenPosition not implemented")
+}
+func (UnimplementedPositionServiceServer) SetStopLoss(context.Context, *SetStopLossRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetStopLoss not implemented")
 }
 func (UnimplementedPositionServiceServer) mustEmbedUnimplementedPositionServiceServer() {}
 
@@ -104,7 +119,7 @@ func _PositionService_OpenPosition_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/PositionService/OpenPosition",
+		FullMethod: "/pb.PositionService/OpenPosition",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PositionServiceServer).OpenPosition(ctx, req.(*OpenPositionRequest))
@@ -122,7 +137,7 @@ func _PositionService_ClosePosition_Handler(srv interface{}, ctx context.Context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/PositionService/ClosePosition",
+		FullMethod: "/pb.PositionService/ClosePosition",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PositionServiceServer).ClosePosition(ctx, req.(*ClosePositionRequest))
@@ -140,10 +155,28 @@ func _PositionService_GetOpenPosition_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/PositionService/GetOpenPosition",
+		FullMethod: "/pb.PositionService/GetOpenPosition",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PositionServiceServer).GetOpenPosition(ctx, req.(*GetOpenPositionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PositionService_SetStopLoss_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetStopLossRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PositionServiceServer).SetStopLoss(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.PositionService/SetStopLoss",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PositionServiceServer).SetStopLoss(ctx, req.(*SetStopLossRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -152,7 +185,7 @@ func _PositionService_GetOpenPosition_Handler(srv interface{}, ctx context.Conte
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var PositionService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "PositionService",
+	ServiceName: "pb.PositionService",
 	HandlerType: (*PositionServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -166,6 +199,10 @@ var PositionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOpenPosition",
 			Handler:    _PositionService_GetOpenPosition_Handler,
+		},
+		{
+			MethodName: "SetStopLoss",
+			Handler:    _PositionService_SetStopLoss_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

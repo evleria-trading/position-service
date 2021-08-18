@@ -2,8 +2,11 @@ package handler
 
 import (
 	"context"
+	"database/sql"
 	"github.com/evleria/position-service/internal/service"
 	"github.com/evleria/position-service/protocol/pb"
+	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -48,10 +51,20 @@ func (p *PositionService) GetOpenPosition(ctx context.Context, request *pb.GetOp
 	}
 
 	return &pb.GetOpenPositionResponse{
-		AddPrice:  pos.AddPrice,
-		Symbol:    pos.Symbol,
-		IsBuyType: pos.IsBuyType,
+		AddPrice:   pos.AddPrice,
+		Symbol:     pos.Symbol,
+		IsBuyType:  pos.IsBuyType,
+		StopLoss:   toProtoDoubleValue(pos.StopLoss),
+		TakeProfit: toProtoDoubleValue(pos.TakeProfit),
 	}, nil
+}
+
+func (p *PositionService) SetStopLoss(ctx context.Context, request *pb.SetStopLossRequest) (*empty.Empty, error) {
+	err := p.service.SetStopLoss(ctx, request.PositionId, request.StopLoss)
+	if err != nil {
+		return nil, status.Error(getStatusCode(err), err.Error())
+	}
+	return &empty.Empty{}, nil
 }
 
 func getStatusCode(err error) codes.Code {
@@ -60,9 +73,18 @@ func getStatusCode(err error) codes.Code {
 		return codes.NotFound
 	case service.ErrPositionClosed:
 		return codes.FailedPrecondition
-	case service.ErrPriceChanged:
+	case service.ErrPriceChanged, service.ErrStopLossIsNotNegative:
 		return codes.InvalidArgument
 	default:
 		return codes.Internal
+	}
+}
+
+func toProtoDoubleValue(f sql.NullFloat64) *wrappers.DoubleValue {
+	if f.Valid == false {
+		return nil
+	}
+	return &wrappers.DoubleValue{
+		Value: f.Float64,
 	}
 }
