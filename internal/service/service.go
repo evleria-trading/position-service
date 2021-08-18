@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/evleria/position-service/internal/model"
+	"github.com/evleria/position-service/internal/pnl"
 	"github.com/evleria/position-service/internal/repository"
 	log "github.com/sirupsen/logrus"
 )
@@ -43,7 +44,7 @@ func (p *position) AddPosition(ctx context.Context, symbol string, isBuyType boo
 		return 0, ErrPriceChanged
 	}
 
-	openPrice := getPrice(price, isBuyType)
+	openPrice := price.GetPrice(isBuyType)
 	id, err := p.positionRepository.CreatePosition(ctx, openPrice, symbol, isBuyType)
 	if err != nil {
 		return 0, err
@@ -75,7 +76,7 @@ func (p *position) ClosePosition(ctx context.Context, positionId int64, priceId 
 		return 0, ErrPriceChanged
 	}
 
-	closePrice := getPrice(price, !pos.IsBuyType)
+	closePrice := price.GetPrice(!pos.IsBuyType)
 	err = p.positionRepository.ClosePosition(ctx, positionId, closePrice)
 	if err != nil {
 		if err == repository.ErrPositionAlreadyClosed {
@@ -85,10 +86,7 @@ func (p *position) ClosePosition(ctx context.Context, positionId int64, priceId 
 	}
 
 	log.WithFields(log.Fields{"id": positionId}).Info("Closed position")
-	if pos.IsBuyType {
-		return closePrice - pos.AddPrice, nil
-	}
-	return pos.AddPrice - closePrice, nil
+	return pnl.Calculate(pos.AddPrice, closePrice, pos.IsBuyType), nil
 }
 
 func (p *position) GetOpenPosition(ctx context.Context, positionId int64) (*model.Position, error) {
@@ -104,11 +102,4 @@ func (p *position) GetOpenPosition(ctx context.Context, positionId int64) (*mode
 		return nil, ErrPositionClosed
 	}
 	return pos, nil
-}
-
-func getPrice(price model.Price, isBuy bool) float64 {
-	if isBuy {
-		return price.Ask
-	}
-	return price.Bid
 }

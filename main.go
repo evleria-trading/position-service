@@ -7,6 +7,7 @@ import (
 	"github.com/evleria/position-service/internal/config"
 	"github.com/evleria/position-service/internal/consumer"
 	grpcService "github.com/evleria/position-service/internal/handler"
+	"github.com/evleria/position-service/internal/pnl"
 	"github.com/evleria/position-service/internal/repository"
 	"github.com/evleria/position-service/internal/service"
 	"github.com/evleria/position-service/protocol/pb"
@@ -38,18 +39,7 @@ func main() {
 	openedChan, closedChan, err := positionRepository.ListenNotifications(context.Background())
 	check(err)
 
-	go func() {
-		for {
-			select {
-			case pr := <-pricesChan:
-				log.Infof("New price changed message received %#v", pr)
-			case pos := <-openedChan:
-				log.Infof("New position opened message received %#v", pos)
-			case pos := <-closedChan:
-				log.Infof("New position closed message received %#v", pos)
-			}
-		}
-	}()
+	go pnl.CalculatePnlForOpenPositions(pricesChan, openedChan, closedChan)
 
 	startGrpcServer(grpcService.NewPositionService(positionService), ":6000")
 }

@@ -6,3 +6,10 @@ type Price struct {
 	Bid    float64
 	Symbol string
 }
+
+func (p *Price) GetPrice(isBuy bool) float64 {
+	if isBuy {
+		return p.Ask
+	}
+	return p.Bid
+}
