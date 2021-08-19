@@ -4,17 +4,18 @@ import (
 	"context"
 	"errors"
 	"github.com/evleria/position-service/internal/model"
-	"github.com/evleria/position-service/internal/pnl"
+	"github.com/evleria/position-service/internal/pnl/profit"
 	"github.com/evleria/position-service/internal/repository"
 	log "github.com/sirupsen/logrus"
 )
 
 var (
-	ErrPriceNotFound         = errors.New("price not found")
-	ErrPositionNotFound      = errors.New("position not found")
-	ErrPositionClosed        = errors.New("position closed")
-	ErrPriceChanged          = errors.New("price is changed")
-	ErrStopLossIsNotNegative = errors.New("stop loss is not negative")
+	ErrPriceNotFound           = errors.New("price not found")
+	ErrPositionNotFound        = errors.New("position not found")
+	ErrPositionClosed          = errors.New("position closed")
+	ErrPriceChanged            = errors.New("price is changed")
+	ErrStopLossIsNotNegative   = errors.New("stop loss is not negative")
+	ErrTakeProfitIsNotPositive = errors.New("take profit is not positive")
 )
 
 type Position interface {
@@ -22,6 +23,7 @@ type Position interface {
 	ClosePosition(ctx context.Context, positionId int64, priceId string) (float64, error)
 	GetOpenPosition(ctx context.Context, positionId int64) (*model.Position, error)
 	SetStopLoss(ctx context.Context, positionId int64, stopLoss float64) error
+	SetTakeProfit(ctx context.Context, id int64, takeProfit float64) error
 }
 
 type position struct {
@@ -88,7 +90,7 @@ func (p *position) ClosePosition(ctx context.Context, positionId int64, priceId 
 	}
 
 	log.WithFields(log.Fields{"id": positionId}).Info("Closed position")
-	return pnl.Calculate(pos.AddPrice, closePrice, pos.IsBuyType), nil
+	return profit.Calculate(pos.AddPrice, closePrice, pos.IsBuyType), nil
 }
 
 func (p *position) GetOpenPosition(ctx context.Context, positionId int64) (*model.Position, error) {
@@ -111,6 +113,17 @@ func (p *position) SetStopLoss(ctx context.Context, positionId int64, stopLoss f
 		return ErrStopLossIsNotNegative
 	}
 	err := p.positionRepository.UpdateStopLoss(ctx, positionId, stopLoss)
+	if err == repository.ErrPositionNotFound {
+		return ErrPositionNotFound
+	}
+	return err
+}
+
+func (p *position) SetTakeProfit(ctx context.Context, positionIid int64, takeProfit float64) error {
+	if takeProfit <= 0 {
+		return ErrTakeProfitIsNotPositive
+	}
+	err := p.positionRepository.UpdateTakeProfit(ctx, positionIid, takeProfit)
 	if err == repository.ErrPositionNotFound {
 		return ErrPositionNotFound
 	}

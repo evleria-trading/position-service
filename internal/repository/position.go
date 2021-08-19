@@ -15,12 +15,19 @@ var (
 	ErrPositionAlreadyClosed = errors.New("position already closed")
 )
 
+const (
+	PositionOpenedChannel  = "notify_position_opened"
+	PositionClosedChannel  = "notify_position_closed"
+	PositionUpdatedChannel = "notify_position_updated"
+)
+
 type Position interface {
 	CreatePosition(ctx context.Context, openPrice float64, symbol string, isBuyType bool) (int64, error)
 	GetPositionByID(ctx context.Context, id int64) (*model.Position, error)
 	ClosePosition(ctx context.Context, id int64, closePrice float64) error
 	UpdateStopLoss(ctx context.Context, id int64, stopLoss float64) error
-	ListenNotifications(ctx context.Context) (chan model.Position, chan model.Position, error)
+	UpdateTakeProfit(ctx context.Context, id int64, takeProfit float64) error
+	ListenNotifications(ctx context.Context) (chan model.Position, chan model.Position, chan model.Position, error)
 }
 
 type position struct {
@@ -80,22 +87,31 @@ func (p *position) UpdateStopLoss(ctx context.Context, id int64, stopLoss float6
 	return nil
 }
 
-func (p *position) ListenNotifications(ctx context.Context) (openedChan chan model.Position, closedChan chan model.Position, err error) {
+func (p *position) UpdateTakeProfit(ctx context.Context, id int64, takeProfit float64) error {
+	res, err := p.db.Exec(ctx, `UPDATE positions SET take_profit=$1 WHERE position_id=$2 AND close_price IS NULL;`, takeProfit, id)
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected() == 0 {
+		return ErrPositionNotFound
+	}
+	return nil
+}
+
+func (p *position) ListenNotifications(ctx context.Context) (openedChan chan model.Position, closedChan chan model.Position, updatedChan chan model.Position, err error) {
 	conn, err := p.db.Acquire(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	_, err = conn.Exec(ctx, "LISTEN notify_position_opened;")
+
+	err = listenChannels(ctx, conn, PositionOpenedChannel, PositionClosedChannel, PositionUpdatedChannel)
 	if err != nil {
-		return nil, nil, err
-	}
-	_, err = conn.Exec(ctx, "LISTEN notify_position_closed;")
-	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	openedChan = make(chan model.Position)
 	closedChan = make(chan model.Position)
+	updatedChan = make(chan model.Position)
 
 	go func() {
 		for {
@@ -108,16 +124,28 @@ func (p *position) ListenNotifications(ctx context.Context) (openedChan chan mod
 					log.Error(err)
 				}
 				switch notification.Channel {
-				case "notify_position_opened":
+				case PositionOpenedChannel:
 					openedChan <- pos
-				case "notify_position_closed":
+				case PositionClosedChannel:
 					closedChan <- pos
+				case PositionUpdatedChannel:
+					updatedChan <- pos
 				}
 			}
 		}
 	}()
 
-	return openedChan, closedChan, nil
+	return openedChan, closedChan, updatedChan, nil
+}
+
+func listenChannels(ctx context.Context, conn *pgxpool.Conn, channels ...string) error {
+	for _, channel := range channels {
+		_, err := conn.Exec(ctx, "LISTEN "+channel+";")
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func decodePosition(payload string) (model.Position, error) {

@@ -2,13 +2,13 @@ package handler
 
 import (
 	"context"
-	"database/sql"
 	"github.com/evleria/position-service/internal/service"
 	"github.com/evleria/position-service/protocol/pb"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"gopkg.in/guregu/null.v4"
 )
 
 type PositionService struct {
@@ -67,6 +67,14 @@ func (p *PositionService) SetStopLoss(ctx context.Context, request *pb.SetStopLo
 	return &empty.Empty{}, nil
 }
 
+func (p *PositionService) SetTakeProfit(ctx context.Context, request *pb.SetTakeProfitRequest) (*empty.Empty, error) {
+	err := p.service.SetTakeProfit(ctx, request.PositionId, request.TakeProfit)
+	if err != nil {
+		return nil, status.Error(getStatusCode(err), err.Error())
+	}
+	return &empty.Empty{}, nil
+}
+
 func getStatusCode(err error) codes.Code {
 	switch err {
 	case service.ErrPriceNotFound, service.ErrPositionNotFound:
@@ -80,7 +88,7 @@ func getStatusCode(err error) codes.Code {
 	}
 }
 
-func toProtoDoubleValue(f sql.NullFloat64) *wrappers.DoubleValue {
+func toProtoDoubleValue(f null.Float) *wrappers.DoubleValue {
 	if f.Valid == false {
 		return nil
 	}

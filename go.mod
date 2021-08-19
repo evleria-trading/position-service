@@ -10,4 +10,5 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	google.golang.org/grpc v1.39.1
 	google.golang.org/protobuf v1.27.1
+	gopkg.in/guregu/null.v4 v4.0.0
 )

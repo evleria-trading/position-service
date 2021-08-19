@@ -36,10 +36,10 @@ func main() {
 	positionService := service.NewPositionService(positionRepository, priceRepository)
 	priceConsumer := consumer.NewPriceConsumer(redisClient, priceRepository, cfg.ConsumerWarmup)
 	pricesChan := priceConsumer.Consume(context.Background())
-	openedChan, closedChan, err := positionRepository.ListenNotifications(context.Background())
+	openedChan, closedChan, updatedChan, err := positionRepository.ListenNotifications(context.Background())
 	check(err)
 
-	go pnl.CalculatePnlForOpenPositions(pricesChan, openedChan, closedChan)
+	go pnl.CalculatePnlForOpenPositions(positionService, pricesChan, openedChan, closedChan, updatedChan)
 
 	startGrpcServer(grpcService.NewPositionService(positionService), ":6000")
 }

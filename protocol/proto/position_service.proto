@@ -11,6 +11,7 @@ service PositionService {
   rpc ClosePosition (ClosePositionRequest) returns (ClosePositionResponse) {}
   rpc GetOpenPosition (GetOpenPositionRequest) returns (GetOpenPositionResponse) {}
   rpc SetStopLoss (SetStopLossRequest) returns (google.protobuf.Empty) {}
+  rpc SetTakeProfit (SetTakeProfitRequest) returns (google.protobuf.Empty) {}
 }
 
 message OpenPositionRequest {
@@ -49,4 +50,7 @@ message SetStopLossRequest {
   double stop_loss = 2;
 }
 
-message Empty {}
+message SetTakeProfitRequest{
+  int64 position_id = 1;
+  double take_profit = 2;
+}

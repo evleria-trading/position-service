@@ -23,6 +23,7 @@ type PositionServiceClient interface {
 	ClosePosition(ctx context.Context, in *ClosePositionRequest, opts ...grpc.CallOption) (*ClosePositionResponse, error)
 	GetOpenPosition(ctx context.Context, in *GetOpenPositionRequest, opts ...grpc.CallOption) (*GetOpenPositionResponse, error)
 	SetStopLoss(ctx context.Context, in *SetStopLossRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	SetTakeProfit(ctx context.Context, in *SetTakeProfitRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type positionServiceClient struct {
@@ -69,6 +70,15 @@ func (c *positionServiceClient) SetStopLoss(ctx context.Context, in *SetStopLoss
 	return out, nil
 }
 
+func (c *positionServiceClient) SetTakeProfit(ctx context.Context, in *SetTakeProfitRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/pb.PositionService/SetTakeProfit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PositionServiceServer is the server API for PositionService service.
 // All implementations must embed UnimplementedPositionServiceServer
 // for forward compatibility
@@ -77,6 +87,7 @@ type PositionServiceServer interface {
 	ClosePosition(context.Context, *ClosePositionRequest) (*ClosePositionResponse, error)
 	GetOpenPosition(context.Context, *GetOpenPositionRequest) (*GetOpenPositionResponse, error)
 	SetStopLoss(context.Context, *SetStopLossRequest) (*empty.Empty, error)
+	SetTakeProfit(context.Context, *SetTakeProfitRequest) (*empty.Empty, error)
 	mustEmbedUnimplementedPositionServiceServer()
 }
 
@@ -95,6 +106,9 @@ func (UnimplementedPositionServiceServer) GetOpenPosition(context.Context, *GetO
 }
 func (UnimplementedPositionServiceServer) SetStopLoss(context.Context, *SetStopLossRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetStopLoss not implemented")
+}
+func (UnimplementedPositionServiceServer) SetTakeProfit(context.Context, *SetTakeProfitRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetTakeProfit not implemented")
 }
 func (UnimplementedPositionServiceServer) mustEmbedUnimplementedPositionServiceServer() {}
 
@@ -181,6 +195,24 @@ func _PositionService_SetStopLoss_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PositionService_SetTakeProfit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetTakeProfitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PositionServiceServer).SetTakeProfit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.PositionService/SetTakeProfit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PositionServiceServer).SetTakeProfit(ctx, req.(*SetTakeProfitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PositionService_ServiceDesc is the grpc.ServiceDesc for PositionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -203,6 +235,10 @@ var PositionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetStopLoss",
 			Handler:    _PositionService_SetStopLoss_Handler,
+		},
+		{
+			MethodName: "SetTakeProfit",
+			Handler:    _PositionService_SetTakeProfit_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
