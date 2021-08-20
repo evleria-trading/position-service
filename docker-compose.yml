@@ -1,25 +1,15 @@
 services:
-  price-service:
-    image: "evleria/price-service:v0.0.1"
-    depends_on:
-      - redis
-    environment:
-      - ENVIRONMENT=prod
-      - REDIS_HOST=redis
-      - GENERATION_RATE=1s
-
   position-service-0:
     build: .
     ports:
       - "6001:6000"
     depends_on:
       - postgres
-      - redis
     command: sh -c "/wait && /server"
     environment:
       - ENVIRONMENT=prod
+      - PRICE_SERVICE_HOST=price-service
       - POSTGRES_HOST=postgres
-      - REDIS_HOST=redis
       - WAIT_HOSTS=postgres:5432
 
   position-service-1:
@@ -28,22 +18,20 @@ services:
       - "6002:6000"
     depends_on:
       - postgres
-      - redis
     command: sh -c "/wait && /server"
     environment:
       - ENVIRONMENT=prod
+      - PRICE_SERVICE_HOST=price-service
       - POSTGRES_HOST=postgres
-      - REDIS_HOST=redis
       - WAIT_HOSTS=postgres:5432
 
-  redis:
-    image: "redis:6-alpine"
-    hostname: redis
+  price-service:
+    image: "evleria/price-service:v0.0.2"
     ports:
-      - "6379:6379"
-    command: sh -c "redis-server --appendonly yes"
-    volumes:
-      - redis-data:/data
+      - "6003:6000"
+    environment:
+      - ENVIRONMENT=prod
+      - GENERATION_RATE=1s
 
   postgres:
     image: "postgres:13-alpine"
@@ -56,5 +44,4 @@ services:
       - pg-data:/var/lib/postgresql/data
 
 volumes:
-  redis-data:
   pg-data:

@@ -2,109 +2,59 @@ package consumer
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"github.com/evleria/position-service/internal/model"
 	"github.com/evleria/position-service/internal/repository"
-	"github.com/go-redis/redis/v8"
+	pricePb "github.com/evleria/price-service/protocol/pb"
+	"github.com/golang/protobuf/ptypes/empty"
 	log "github.com/sirupsen/logrus"
-	"strconv"
-	"time"
 )
 
 type Price interface {
-	Consume(ctx context.Context) chan model.Price
+	Consume(ctx context.Context) (chan model.Price, error)
 }
 
 type price struct {
-	redis          *redis.Client
-	repository     repository.Price
-	warmupDuration time.Duration
+	priceClient pricePb.PriceServiceClient
+	repository  repository.Price
 }
 
-func NewPriceConsumer(
-	redisClient *redis.Client,
-	priceRepository repository.Price,
-	warmupDuration time.Duration) Price {
+func NewPriceConsumer(priceClient pricePb.PriceServiceClient, priceRepository repository.Price) Price {
 	return &price{
-		redis:          redisClient,
-		repository:     priceRepository,
-		warmupDuration: warmupDuration,
+		priceClient: priceClient,
+		repository:  priceRepository,
 	}
 }
 
-func (p *price) Consume(ctx context.Context) chan model.Price {
-	id := fmt.Sprintf("%d000-0", time.Now().Add(-p.warmupDuration).Unix())
+func (p *price) Consume(ctx context.Context) (chan model.Price, error) {
+	stream, err := p.priceClient.GetPrices(ctx, &empty.Empty{})
+	if err != nil {
+		return nil, err
+	}
 	ch := make(chan model.Price)
 	go func() {
 		for {
-			args := &redis.XReadArgs{
-				Streams: []string{"prices", id},
-			}
-			r, err := p.redis.XRead(ctx, args).Result()
+			msg, err := stream.Recv()
 			if err != nil {
 				log.Error(err)
-				continue
+				return
 			}
-			for _, message := range r[0].Messages {
-				pr, err := decodeMessage(message)
-				if err != nil {
-					log.Error(err)
-					break
-				}
+			pr := model.Price{
+				Id:     msg.Id,
+				Symbol: msg.Symbol,
+				Ask:    msg.Ask,
+				Bid:    msg.Bid,
+			}
 
-				log.WithFields(log.Fields{
-					"id":     pr.Id,
-					"symbol": pr.Symbol,
-					"ask":    pr.Ask,
-					"bid":    pr.Bid,
-				}).Debug("Consumed price message")
-				p.repository.UpdatePrice(pr)
-				ch <- pr
-				id = message.ID
-			}
+			log.WithFields(log.Fields{
+				"id":     pr.Id,
+				"symbol": pr.Symbol,
+				"ask":    pr.Ask,
+				"bid":    pr.Bid,
+			}).Debug("Consumed price message")
+			p.repository.UpdatePrice(pr)
+			ch <- pr
 		}
 	}()
-	return ch
-}
 
-func decodeMessage(message redis.XMessage) (model.Price, error) {
-	symbol, err := decodeString(message.Values["symbol"])
-	if err != nil {
-		return model.Price{}, err
-	}
-
-	ask, err := decodeFloat64(message.Values["ask"])
-	if err != nil {
-		return model.Price{}, err
-	}
-
-	bid, err := decodeFloat64(message.Values["bid"])
-	if err != nil {
-		return model.Price{}, err
-	}
-	return model.Price{
-		Id:     message.ID,
-		Symbol: symbol,
-		Ask:    ask,
-		Bid:    bid,
-	}, nil
-}
-
-func decodeString(v interface{}) (string, error) {
-	if v == nil {
-		return "", errors.New("cannot decode nil")
-	}
-	if str, ok := v.(string); ok {
-		return str, nil
-	}
-	return "", errors.New("cannot convert to string")
-}
-
-func decodeFloat64(v interface{}) (float64, error) {
-	str, err := decodeString(v)
-	if err != nil {
-		return 0, err
-	}
-	return strconv.ParseFloat(str, 64)
+	return ch, nil
 }
