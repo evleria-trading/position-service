@@ -104,12 +104,33 @@ func (p *position) ListenNotifications(ctx context.Context) (openedChan chan mod
 		return nil, nil, nil, err
 	}
 
+	rows, err := p.db.Query(ctx, `SELECT * FROM positions WHERE close_price IS NULL`)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	var openPositions []model.Position
+	for rows.Next() {
+		pos := model.Position{}
+		err = rows.Scan(pos.GetFieldAddresses()...)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		openPositions = append(openPositions, pos)
+	}
+
+	openedChan = make(chan model.Position)
+	go func() {
+		for _, pos := range openPositions {
+			openedChan <- pos
+		}
+	}()
+
 	err = listenChannels(ctx, conn, PositionOpenedChannel, PositionClosedChannel, PositionUpdatedChannel)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	openedChan = make(chan model.Position)
 	closedChan = make(chan model.Position)
 	updatedChan = make(chan model.Position)
 
