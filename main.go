@@ -39,7 +39,8 @@ func main() {
 	openedChan, closedChan, updatedChan, err := positionRepository.ListenNotifications(context.Background())
 	check(err)
 
-	go pnl.CalculatePnlForOpenPositions(positionService, pricesChan, openedChan, closedChan, updatedChan)
+	pnlMonitor := pnl.NewMonitor(positionService)
+	go pnlMonitor.CalculatePnlForOpenPositions(pricesChan, openedChan, closedChan, updatedChan)
 
 	startGrpcServer(handler.NewPositionService(positionService), ":6000")
 }
