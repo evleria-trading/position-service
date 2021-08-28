@@ -31,7 +31,7 @@ services:
       - "6003:6000"
     environment:
       - ENVIRONMENT=prod
-      - GENERATION_RATE=100ms
+      - GENERATION_RATE=1ms
 
   postgres:
     image: "postgres:13-alpine"

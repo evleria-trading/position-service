@@ -161,7 +161,7 @@ func (p *position) ListenNotifications(ctx context.Context) (openedChan chan mod
 
 func listenChannels(ctx context.Context, conn *pgxpool.Conn, channels ...string) error {
 	for _, channel := range channels {
-		_, err := conn.Exec(ctx, "LISTEN "+channel+";")
+		_, err := conn.Exec(ctx, "LISTEN $1;", channel)
 		if err != nil {
 			return err
 		}
