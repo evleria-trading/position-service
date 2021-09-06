@@ -2,8 +2,8 @@ package handler
 
 import (
 	"context"
-	"github.com/evleria/position-service/internal/service"
-	"github.com/evleria/position-service/protocol/pb"
+	"github.com/evleria-trading/position-service/internal/service"
+	"github.com/evleria-trading/position-service/protocol/pb"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/grpc/codes"

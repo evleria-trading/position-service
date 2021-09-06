@@ -1,4 +1,4 @@
-module github.com/evleria/position-service
+module github.com/evleria-trading/position-service
 
 go 1.16
 

@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/caarlos0/env/v6"
-	"github.com/evleria/position-service/internal/config"
-	"github.com/evleria/position-service/internal/consumer"
-	"github.com/evleria/position-service/internal/handler"
-	"github.com/evleria/position-service/internal/pnl"
-	"github.com/evleria/position-service/internal/repository"
-	"github.com/evleria/position-service/internal/service"
-	"github.com/evleria/position-service/protocol/pb"
+	"github.com/evleria-trading/position-service/internal/config"
+	"github.com/evleria-trading/position-service/internal/consumer"
+	"github.com/evleria-trading/position-service/internal/handler"
+	"github.com/evleria-trading/position-service/internal/pnl"
+	"github.com/evleria-trading/position-service/internal/repository"
+	"github.com/evleria-trading/position-service/internal/service"
+	"github.com/evleria-trading/position-service/protocol/pb"
 	pricePb "github.com/evleria/price-service/protocol/pb"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
@@ -21,7 +21,10 @@ import (
 
 func main() {
 	cfg := new(config.Сonfig)
-	check(env.Parse(cfg))
+	err := env.Parse(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	setupLogger(cfg.Environment)
 
@@ -35,9 +38,13 @@ func main() {
 	positionService := service.NewPositionService(positionRepository, priceRepository)
 	priceConsumer := consumer.NewPriceConsumer(priceClient, priceRepository)
 	pricesChan, err := priceConsumer.Consume(context.Background())
-	check(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	openedChan, closedChan, updatedChan, err := positionRepository.ListenNotifications(context.Background())
-	check(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	pnlMonitor := pnl.NewMonitor(positionService)
 	go pnlMonitor.CalculatePnlForOpenPositions(pricesChan, openedChan, closedChan, updatedChan)
@@ -47,14 +54,19 @@ func main() {
 
 func startGrpcServer(positionService pb.PositionServiceServer, port string) {
 	listener, err := net.Listen("tcp", port)
-	check(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	s := grpc.NewServer()
 	pb.RegisterPositionServiceServer(s, positionService)
 	reflection.Register(s)
 
 	log.Info("gRPC server started on ", port)
-	check(s.Serve(listener))
+	err = s.Serve(listener)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func setupLogger(environment string) {
@@ -71,7 +83,9 @@ func getPostgres(cfg *config.Сonfig) *pgxpool.Pool {
 	dbURL := getPostgresConnectionString(cfg)
 
 	db, err := pgxpool.Connect(context.Background(), dbURL)
-	check(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return db
 }
@@ -79,7 +93,9 @@ func getPostgres(cfg *config.Сonfig) *pgxpool.Pool {
 func getPriceGrpcClient(cfg *config.Сonfig) pricePb.PriceServiceClient {
 	url := fmt.Sprintf("%s:%d", cfg.PriceServiceHost, cfg.PriceServicePort)
 	conn, err := grpc.Dial(url, grpc.WithInsecure(), grpc.WithBlock())
-	check(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return pricePb.NewPriceServiceClient(conn)
 }
 
@@ -95,10 +111,4 @@ func getPostgresConnectionString(cfg *config.Сonfig) string {
 		conn += "?sslmode=disable"
 	}
 	return conn
-}
-
-func check(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
 }

@@ -2,8 +2,8 @@ package consumer
 
 import (
 	"context"
-	"github.com/evleria/position-service/internal/model"
-	"github.com/evleria/position-service/internal/repository"
+	"github.com/evleria-trading/position-service/internal/model"
+	"github.com/evleria-trading/position-service/internal/repository"
 	pricePb "github.com/evleria/price-service/protocol/pb"
 	"github.com/golang/protobuf/ptypes/empty"
 	log "github.com/sirupsen/logrus"

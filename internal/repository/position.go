@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/evleria/position-service/internal/model"
+	"github.com/evleria-trading/position-service/internal/model"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
@@ -161,7 +161,7 @@ func (p *position) ListenNotifications(ctx context.Context) (openedChan chan mod
 
 func listenChannels(ctx context.Context, conn *pgxpool.Conn, channels ...string) error {
 	for _, channel := range channels {
-		_, err := conn.Exec(ctx, "LISTEN $1;", channel)
+		_, err := conn.Exec(ctx, "LISTEN "+channel)
 		if err != nil {
 			return err
 		}

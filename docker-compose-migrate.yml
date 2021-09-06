@@ -1,0 +1,7 @@
+services:
+  flyway:
+    container_name: flyway
+    image: flyway/flyway:7-alpine
+    command: -url=jdbc:postgresql://postgres/positions_db -connectRetries=60 -user=postgres migrate
+    volumes:
+      - ./migrations:/flyway/sql

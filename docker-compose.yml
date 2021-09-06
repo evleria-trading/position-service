@@ -26,12 +26,23 @@ services:
       - WAIT_HOSTS=postgres:5432
 
   price-service:
-    image: "evleria/price-service:v0.0.3"
+    image: "evleria/trading-price-service:v0.0.3"
     ports:
-      - "6003:6000"
+      - "6101:6000"
     environment:
       - ENVIRONMENT=prod
       - GENERATION_RATE=1ms
+
+  user-service:
+    image: "evleria/trading-user-service:v0.0.1"
+    ports:
+      - "6201:6000"
+    depends_on:
+      - postgres
+    command: sh -c "/wait && /server"
+    environment:
+      - POSTGRES_HOST=postgres
+      - WAIT_HOSTS=postgres:5432
 
   postgres:
     image: "postgres:13-alpine"
@@ -45,3 +56,5 @@ services:
 
 volumes:
   pg-data:
+    external: true
+    name: evleria-trading_pg-data

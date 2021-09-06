@@ -7,7 +7,7 @@ type Сonfig struct {
 	PostgresPass       string `env:"POSTGRES_PASSWORD" envDefault:""`
 	PostgresHost       string `env:"POSTGRES_HOST" envDefault:"localhost"`
 	PostgresPort       int    `env:"POSTGRES_PORT" envDefault:"5432"`
-	PostgresDb         string `env:"POSTGRES_DB" envDefault:"postgres"`
+	PostgresDb         string `env:"POSTGRES_DB" envDefault:"positions_db"`
 	PostgresSSLDisable bool   `env:"POSTGRES_SSL_DISABLE" envDefault:"false"`
 
 	PriceServiceHost string `env:"PRICE_SERVICE_HOST" envDefault:"localhost"`

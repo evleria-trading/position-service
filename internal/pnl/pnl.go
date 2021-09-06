@@ -2,9 +2,9 @@ package pnl
 
 import (
 	"context"
-	"github.com/evleria/position-service/internal/model"
-	"github.com/evleria/position-service/internal/pnl/profit"
-	"github.com/evleria/position-service/internal/service"
+	"github.com/evleria-trading/position-service/internal/model"
+	"github.com/evleria-trading/position-service/internal/pnl/profit"
+	"github.com/evleria-trading/position-service/internal/service"
 	log "github.com/sirupsen/logrus"
 )
 
