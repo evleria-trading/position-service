@@ -23,7 +23,7 @@ func NewPositionService(positionService service.Position) pb.PositionServiceServ
 }
 
 func (p *PositionService) OpenPosition(ctx context.Context, request *pb.OpenPositionRequest) (*pb.OpenPositionResponse, error) {
-	id, err := p.service.AddPosition(ctx, request.Symbol, request.IsBuyType, request.PriceId)
+	id, err := p.service.AddPosition(ctx, request.UserId, request.Symbol, request.IsBuyType, request.PriceId)
 	if err != nil {
 		return nil, status.Error(getStatusCode(err), err.Error())
 	}

@@ -1,0 +1,2 @@
+ALTER TABLE positions
+ADD COLUMN user_id INTEGER NOT NULL;

@@ -22,7 +22,7 @@ const (
 )
 
 type Position interface {
-	CreatePosition(ctx context.Context, openPrice float64, symbol string, isBuyType bool) (int64, error)
+	CreatePosition(ctx context.Context, userId int64, openPrice float64, symbol string, isBuyType bool) (int64, error)
 	GetPositionByID(ctx context.Context, id int64) (*model.Position, error)
 	ClosePosition(ctx context.Context, id int64, closePrice float64) error
 	UpdateStopLoss(ctx context.Context, id int64, stopLoss float64) error
@@ -40,11 +40,12 @@ func NewPositionRepository(db *pgxpool.Pool) Position {
 	}
 }
 
-func (p *position) CreatePosition(ctx context.Context, openPrice float64, symbol string, isBuyType bool) (int64, error) {
+func (p *position) CreatePosition(ctx context.Context, userId int64, openPrice float64, symbol string, isBuyType bool) (int64, error) {
 	var id int64
 	err := p.db.QueryRow(
 		ctx,
-		`INSERT INTO positions (add_price, symbol, is_buy_type) VALUES ($1, $2, $3) RETURNING position_id;`,
+		`INSERT INTO positions (user_id, add_price, symbol, is_buy_type) VALUES ($1, $2, $3, $4) RETURNING position_id;`,
+		userId,
 		openPrice,
 		symbol,
 		isBuyType).Scan(&id)

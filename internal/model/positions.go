@@ -14,6 +14,7 @@ type Position struct {
 	IsBuyType  bool       `db:"is_buy_type" json:"is_buy_type"`
 	StopLoss   null.Float `db:"stop_loss" json:"stop_loss"`
 	TakeProfit null.Float `db:"take_profit" json:"take_profit"`
+	UserID     int64      `db:"user_id" json:"user_id"`
 }
 
 func (p *Position) IsClosed() bool {
@@ -21,5 +22,5 @@ func (p *Position) IsClosed() bool {
 }
 
 func (p *Position) GetFieldAddresses() []interface{} {
-	return []interface{}{&p.PositionID, &p.AddPrice, &p.ClosePrice.NullFloat64, &p.Symbol, &p.OpenedAt, &p.IsBuyType, &p.StopLoss.NullFloat64, &p.TakeProfit.NullFloat64}
+	return []interface{}{&p.PositionID, &p.AddPrice, &p.ClosePrice.NullFloat64, &p.Symbol, &p.OpenedAt, &p.IsBuyType, &p.StopLoss.NullFloat64, &p.TakeProfit.NullFloat64, &p.UserID}
 }

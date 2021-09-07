@@ -19,7 +19,7 @@ var (
 )
 
 type Position interface {
-	AddPosition(ctx context.Context, symbol string, isBuyType bool, priceId string) (int64, error)
+	AddPosition(ctx context.Context, userId int64, symbol string, isBuyType bool, priceId string) (int64, error)
 	ClosePosition(ctx context.Context, positionId int64, priceId string) (float64, error)
 	GetOpenPosition(ctx context.Context, positionId int64) (*model.Position, error)
 	SetStopLoss(ctx context.Context, positionId int64, stopLoss float64) error
@@ -38,7 +38,7 @@ func NewPositionService(positionRepository repository.Position, priceRepository 
 	}
 }
 
-func (p *position) AddPosition(ctx context.Context, symbol string, isBuyType bool, priceId string) (int64, error) {
+func (p *position) AddPosition(ctx context.Context, userId int64, symbol string, isBuyType bool, priceId string) (int64, error) {
 	price, err := p.priceRepository.GetPrice(symbol)
 	if err != nil {
 		return 0, ErrPriceNotFound
@@ -49,7 +49,7 @@ func (p *position) AddPosition(ctx context.Context, symbol string, isBuyType boo
 	}
 
 	openPrice := price.GetPrice(isBuyType)
-	id, err := p.positionRepository.CreatePosition(ctx, openPrice, symbol, isBuyType)
+	id, err := p.positionRepository.CreatePosition(ctx, userId, openPrice, symbol, isBuyType)
 	if err != nil {
 		return 0, err
 	}
