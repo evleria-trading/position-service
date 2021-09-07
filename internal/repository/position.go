@@ -25,8 +25,8 @@ type Position interface {
 	CreatePosition(ctx context.Context, userId int64, openPrice float64, symbol string, isBuyType bool) (int64, error)
 	GetPositionByID(ctx context.Context, id int64) (*model.Position, error)
 	ClosePosition(ctx context.Context, id int64, closePrice float64) error
-	UpdateStopLoss(ctx context.Context, id int64, stopLoss float64) error
-	UpdateTakeProfit(ctx context.Context, id int64, takeProfit float64) error
+	UpdateStopLoss(ctx context.Context, userId int64, positionId int64, stopLoss float64) error
+	UpdateTakeProfit(ctx context.Context, userId int64, positionId int64, takeProfit float64) error
 	ListenNotifications(ctx context.Context) (chan model.Position, chan model.Position, chan model.Position, error)
 }
 
@@ -77,8 +77,8 @@ func (p *position) ClosePosition(ctx context.Context, id int64, closePrice float
 	return nil
 }
 
-func (p *position) UpdateStopLoss(ctx context.Context, id int64, stopLoss float64) error {
-	res, err := p.db.Exec(ctx, `UPDATE positions SET stop_loss=$1 WHERE position_id=$2 AND close_price IS NULL;`, stopLoss, id)
+func (p *position) UpdateStopLoss(ctx context.Context, userId int64, positionId int64, stopLoss float64) error {
+	res, err := p.db.Exec(ctx, `UPDATE positions SET stop_loss=$1 WHERE user_id=$2 AND position_id=$3 AND close_price IS NULL;`, stopLoss, userId, positionId)
 	if err != nil {
 		return err
 	}
@@ -88,8 +88,8 @@ func (p *position) UpdateStopLoss(ctx context.Context, id int64, stopLoss float6
 	return nil
 }
 
-func (p *position) UpdateTakeProfit(ctx context.Context, id int64, takeProfit float64) error {
-	res, err := p.db.Exec(ctx, `UPDATE positions SET take_profit=$1 WHERE position_id=$2 AND close_price IS NULL;`, takeProfit, id)
+func (p *position) UpdateTakeProfit(ctx context.Context, userId int64, positionId int64, takeProfit float64) error {
+	res, err := p.db.Exec(ctx, `UPDATE positions SET take_profit=$1 WHERE user_id=$2 AND position_id=$3 AND close_price IS NULL;`, takeProfit, userId, positionId)
 	if err != nil {
 		return err
 	}

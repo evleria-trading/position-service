@@ -34,7 +34,7 @@ func (p *PositionService) OpenPosition(ctx context.Context, request *pb.OpenPosi
 }
 
 func (p *PositionService) ClosePosition(ctx context.Context, request *pb.ClosePositionRequest) (*pb.ClosePositionResponse, error) {
-	profit, err := p.service.ClosePosition(ctx, request.PositionId, request.PriceId)
+	profit, err := p.service.ClosePosition(ctx, request.UserId, request.PositionId, request.PriceId)
 	if err != nil {
 		return nil, status.Error(getStatusCode(err), err.Error())
 	}
@@ -56,11 +56,12 @@ func (p *PositionService) GetOpenPosition(ctx context.Context, request *pb.GetOp
 		IsBuyType:  pos.IsBuyType,
 		StopLoss:   toProtoDoubleValue(pos.StopLoss),
 		TakeProfit: toProtoDoubleValue(pos.TakeProfit),
+		UserId:     pos.UserID,
 	}, nil
 }
 
 func (p *PositionService) SetStopLoss(ctx context.Context, request *pb.SetStopLossRequest) (*empty.Empty, error) {
-	err := p.service.SetStopLoss(ctx, request.PositionId, request.StopLoss)
+	err := p.service.SetStopLoss(ctx, request.UserId, request.PositionId, request.StopLoss)
 	if err != nil {
 		return nil, status.Error(getStatusCode(err), err.Error())
 	}
@@ -68,7 +69,7 @@ func (p *PositionService) SetStopLoss(ctx context.Context, request *pb.SetStopLo
 }
 
 func (p *PositionService) SetTakeProfit(ctx context.Context, request *pb.SetTakeProfitRequest) (*empty.Empty, error) {
-	err := p.service.SetTakeProfit(ctx, request.PositionId, request.TakeProfit)
+	err := p.service.SetTakeProfit(ctx, request.UserId, request.PositionId, request.TakeProfit)
 	if err != nil {
 		return nil, status.Error(getStatusCode(err), err.Error())
 	}

@@ -75,7 +75,7 @@ func (m *monitor) handlePosition(pos model.Position) channels {
 					"pnl":        pnl,
 				}).Info("Calculated PnL")
 				if (pos.StopLoss.Valid && pnl <= pos.StopLoss.Float64) || (pos.TakeProfit.Valid && pnl >= pos.TakeProfit.Float64) {
-					_, err := m.positionService.ClosePosition(context.Background(), pos.PositionID, pr.Id)
+					_, err := m.positionService.ClosePosition(context.Background(), pos.UserID, pos.PositionID, pr.Id)
 					if err != nil {
 						log.Error(err)
 					}

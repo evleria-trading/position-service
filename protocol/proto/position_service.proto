@@ -28,6 +28,7 @@ message OpenPositionResponse {
 message ClosePositionRequest {
   int64 position_id = 1;
   string price_id = 2;
+  int64 user_id = 3;
 }
 
 message ClosePositionResponse {
@@ -44,14 +45,17 @@ message GetOpenPositionResponse {
   bool is_buy_type = 3;
   google.protobuf.DoubleValue stop_loss = 4;
   google.protobuf.DoubleValue take_profit = 5;
+  int64 user_id = 6;
 }
 
 message SetStopLossRequest {
   int64 position_id = 1;
   double stop_loss = 2;
+  int64 user_id = 3;
 }
 
-message SetTakeProfitRequest{
+message SetTakeProfitRequest {
   int64 position_id = 1;
   double take_profit = 2;
+  int64 user_id = 3;
 }

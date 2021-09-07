@@ -20,10 +20,10 @@ var (
 
 type Position interface {
 	AddPosition(ctx context.Context, userId int64, symbol string, isBuyType bool, priceId string) (int64, error)
-	ClosePosition(ctx context.Context, positionId int64, priceId string) (float64, error)
+	ClosePosition(ctx context.Context, userId int64, positionId int64, priceId string) (float64, error)
 	GetOpenPosition(ctx context.Context, positionId int64) (*model.Position, error)
-	SetStopLoss(ctx context.Context, positionId int64, stopLoss float64) error
-	SetTakeProfit(ctx context.Context, id int64, takeProfit float64) error
+	SetStopLoss(ctx context.Context, userId int64, positionId int64, stopLoss float64) error
+	SetTakeProfit(ctx context.Context, userId int64, positionId int64, takeProfit float64) error
 }
 
 type position struct {
@@ -58,13 +58,17 @@ func (p *position) AddPosition(ctx context.Context, userId int64, symbol string,
 	return id, nil
 }
 
-func (p *position) ClosePosition(ctx context.Context, positionId int64, priceId string) (float64, error) {
+func (p *position) ClosePosition(ctx context.Context, userId int64, positionId int64, priceId string) (float64, error) {
 	pos, err := p.positionRepository.GetPositionByID(ctx, positionId)
 	if err != nil {
 		if err == repository.ErrPositionNotFound {
 			return 0, ErrPositionNotFound
 		}
 		return 0, err
+	}
+
+	if pos.UserID != userId {
+		return 0, ErrPositionNotFound
 	}
 
 	if pos.IsClosed() {
@@ -108,22 +112,22 @@ func (p *position) GetOpenPosition(ctx context.Context, positionId int64) (*mode
 	return pos, nil
 }
 
-func (p *position) SetStopLoss(ctx context.Context, positionId int64, stopLoss float64) error {
+func (p *position) SetStopLoss(ctx context.Context, userId int64, positionId int64, stopLoss float64) error {
 	if stopLoss >= 0 {
 		return ErrStopLossIsNotNegative
 	}
-	err := p.positionRepository.UpdateStopLoss(ctx, positionId, stopLoss)
+	err := p.positionRepository.UpdateStopLoss(ctx, userId, positionId, stopLoss)
 	if err == repository.ErrPositionNotFound {
 		return ErrPositionNotFound
 	}
 	return err
 }
 
-func (p *position) SetTakeProfit(ctx context.Context, positionIid int64, takeProfit float64) error {
+func (p *position) SetTakeProfit(ctx context.Context, userId int64, positionId int64, takeProfit float64) error {
 	if takeProfit <= 0 {
 		return ErrTakeProfitIsNotPositive
 	}
-	err := p.positionRepository.UpdateTakeProfit(ctx, positionIid, takeProfit)
+	err := p.positionRepository.UpdateTakeProfit(ctx, userId, positionId, takeProfit)
 	if err == repository.ErrPositionNotFound {
 		return ErrPositionNotFound
 	}
