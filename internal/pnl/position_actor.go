@@ -23,6 +23,7 @@ func NewPositionActor(pos model.Position, positionService service.Position) *pos
 	closeChan := make(chan struct{})
 	go func() {
 		for {
+			//lastPnl := math.MaxFloat64
 			select {
 			case pr := <-priceChan:
 				pnl := profit.Calculate(pos.AddPrice, pr.GetPrice(!pos.IsBuyType), pos.IsBuyType)
@@ -32,6 +33,7 @@ func NewPositionActor(pos model.Position, positionService service.Position) *pos
 						log.Error(err)
 					}
 				}
+
 			case pos = <-updateChan:
 			case <-closeChan:
 				return
