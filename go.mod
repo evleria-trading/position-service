@@ -3,8 +3,9 @@ module github.com/evleria-trading/position-service
 go 1.16
 
 require (
-	github.com/caarlos0/env/v6 v6.6.2
-	github.com/evleria/price-service v0.0.2
+	github.com/caarlos0/env/v6 v6.7.0
+	github.com/evleria-trading/price-service v0.0.4
+	github.com/evleria-trading/user-service v0.0.1
 	github.com/golang/protobuf v1.5.2
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/sirupsen/logrus v1.8.1

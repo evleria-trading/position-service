@@ -11,7 +11,8 @@ import (
 	"github.com/evleria-trading/position-service/internal/repository"
 	"github.com/evleria-trading/position-service/internal/service"
 	"github.com/evleria-trading/position-service/protocol/pb"
-	pricePb "github.com/evleria/price-service/protocol/pb"
+	pricePb "github.com/evleria-trading/price-service/protocol/pb"
+	userPb "github.com/evleria-trading/user-service/protocol/pb"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -32,10 +33,13 @@ func main() {
 	defer db.Close()
 
 	priceClient := getPriceGrpcClient(cfg)
+	//userClient := getUserGrpcClient(cfg)
 
 	positionRepository := repository.NewPositionRepository(db)
 	priceRepository := repository.NewPriceRepository()
-	positionService := service.NewPositionService(positionRepository, priceRepository)
+	//userRepository := repository.NewUserRepository(userClient)
+	portfolioRepository := repository.NewPortfolioRepository()
+	positionService := service.NewPositionService(positionRepository, priceRepository, portfolioRepository)
 	priceConsumer := consumer.NewPriceConsumer(priceClient, priceRepository)
 	pricesChan, err := priceConsumer.Consume(context.Background())
 	if err != nil {
@@ -111,4 +115,13 @@ func getPostgresConnectionString(cfg *config.Сonfig) string {
 		conn += "?sslmode=disable"
 	}
 	return conn
+}
+
+func getUserGrpcClient(cfg *config.Сonfig) userPb.UserServiceClient {
+	url := fmt.Sprintf("%s:%d", cfg.UserServiceHost, cfg.UserServicePort)
+	conn, err := grpc.Dial(url, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		log.Fatal(err)
+	}
+	return userPb.NewUserServiceClient(conn)
 }

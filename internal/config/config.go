@@ -12,4 +12,7 @@ type Сonfig struct {
 
 	PriceServiceHost string `env:"PRICE_SERVICE_HOST" envDefault:"localhost"`
 	PriceServicePort int    `env:"PRICE_SERVICE_PORT" envDefault:"6000"`
+
+	UserServiceHost string `env:"USER_SERVICE_HOST" envDefault:"localhost"`
+	UserServicePort int    `env:"USER_SERVICE_PORT" envDefault:"6000"`
 }

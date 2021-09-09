@@ -9,6 +9,7 @@ services:
     environment:
       - ENVIRONMENT=prod
       - PRICE_SERVICE_HOST=price-service
+      - USER_SERVICE_HOST=user-service
       - POSTGRES_HOST=postgres
       - WAIT_HOSTS=postgres:5432
 
@@ -22,6 +23,7 @@ services:
     environment:
       - ENVIRONMENT=prod
       - PRICE_SERVICE_HOST=price-service
+      - USER_SERVICE_HOST=user-service
       - POSTGRES_HOST=postgres
       - WAIT_HOSTS=postgres:5432
 

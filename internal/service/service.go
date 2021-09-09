@@ -16,6 +16,7 @@ var (
 	ErrPriceChanged            = errors.New("price is changed")
 	ErrStopLossIsNotNegative   = errors.New("stop loss is not negative")
 	ErrTakeProfitIsNotPositive = errors.New("take profit is not positive")
+	//ErrBalanceNotFound         = errors.New("balance not found")
 )
 
 type Position interface {
@@ -24,17 +25,26 @@ type Position interface {
 	GetOpenPosition(ctx context.Context, positionId int64) (*model.Position, error)
 	SetStopLoss(ctx context.Context, userId int64, positionId int64, stopLoss float64) error
 	SetTakeProfit(ctx context.Context, userId int64, positionId int64, takeProfit float64) error
+
+	UpdatePortfolio(position model.Position)
+	RemoveFromPortfolio(position model.Position)
+	RecalculatePortfolio(userId, positionId int64, price model.Price)
 }
 
 type position struct {
-	positionRepository repository.Position
-	priceRepository    repository.Price
+	positionRepository  repository.Position
+	priceRepository     repository.Price
+	portfolioRepository repository.Portfolio
 }
 
-func NewPositionService(positionRepository repository.Position, priceRepository repository.Price) Position {
+func NewPositionService(
+	positionRepository repository.Position,
+	priceRepository repository.Price,
+	portfolioRepository repository.Portfolio) Position {
 	return &position{
-		positionRepository: positionRepository,
-		priceRepository:    priceRepository,
+		positionRepository:  positionRepository,
+		priceRepository:     priceRepository,
+		portfolioRepository: portfolioRepository,
 	}
 }
 
@@ -93,6 +103,11 @@ func (p *position) ClosePosition(ctx context.Context, userId int64, positionId i
 		return 0, err
 	}
 
+	/*bal, err := p.userRepository.GetBalance(ctx, userId)
+	if err != nil {
+		return 0, ErrBalanceNotFound
+	}*/
+
 	log.WithFields(log.Fields{"id": positionId}).Info("Closed position")
 	return profit.Calculate(pos.AddPrice, closePrice, pos.IsBuyType), nil
 }
@@ -132,4 +147,20 @@ func (p *position) SetTakeProfit(ctx context.Context, userId int64, positionId i
 		return ErrPositionNotFound
 	}
 	return err
+}
+
+func (p *position) UpdatePortfolio(position model.Position) {
+	price, err := p.priceRepository.GetPrice(position.Symbol)
+	if err != nil {
+		p.portfolioRepository.UpdatePortfolioWithoutPrice(position)
+	}
+	p.portfolioRepository.UpdatePortfolio(position, price)
+}
+
+func (p *position) RemoveFromPortfolio(position model.Position) {
+	p.portfolioRepository.RemoveFromPortfolio(position)
+}
+
+func (p *position) RecalculatePortfolio(userId, positionId int64, price model.Price) {
+	p.portfolioRepository.RecalculatePortfolio(userId, positionId, price)
 }
