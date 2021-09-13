@@ -33,13 +33,13 @@ func main() {
 	defer db.Close()
 
 	priceClient := getPriceGrpcClient(cfg)
-	//userClient := getUserGrpcClient(cfg)
+	userClient := getUserGrpcClient(cfg)
 
 	positionRepository := repository.NewPositionRepository(db)
 	priceRepository := repository.NewPriceRepository()
-	//userRepository := repository.NewUserRepository(userClient)
+	userRepository := repository.NewUserRepository(userClient)
 	portfolioRepository := repository.NewPortfolioRepository()
-	positionService := service.NewPositionService(positionRepository, priceRepository, portfolioRepository)
+	positionService := service.NewPositionService(positionRepository, priceRepository, userRepository, portfolioRepository)
 	priceConsumer := consumer.NewPriceConsumer(priceClient, priceRepository)
 	pricesChan, err := priceConsumer.Consume(context.Background())
 	if err != nil {

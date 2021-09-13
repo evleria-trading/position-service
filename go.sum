@@ -36,6 +36,8 @@ github.com/evleria-trading/price-service v0.0.4 h1:6Xf0G8YHAmOMvYlRdycTQBdw6E431
 github.com/evleria-trading/price-service v0.0.4/go.mod h1:FnfKmhSZUl7UiQPAvF4OV0IHHtYLGhq+uQXXlzFMXxo=
 github.com/evleria-trading/user-service v0.0.1 h1:qRaCiYXQ1J9RsGCXOTR37ocgVNrA84Wf/Ewep12jqbA=
 github.com/evleria-trading/user-service v0.0.1/go.mod h1:F5QlNYMbmeb4ofKWLEWZUtbk4VaWuvr9XlAmzCXksF8=
+github.com/evleria-trading/user-service v0.0.3 h1:sUjm359qBFGCY8R68v/+5at4Bz4payDjjn9/w0AT/ws=
+github.com/evleria-trading/user-service v0.0.3/go.mod h1:F5QlNYMbmeb4ofKWLEWZUtbk4VaWuvr9XlAmzCXksF8=
 github.com/evleria/price-service v0.0.0-20210819185608-40f0c56e522f h1:yUNx5ckGAHiFPZzUJ1bgj2YGb8IXhFVH8ImfC/UqYsk=
 github.com/evleria/price-service v0.0.0-20210819185608-40f0c56e522f/go.mod h1:PsluUj6i02zKgKXxEgF4THaPXvxOVNwTgRpOaTzgl3I=
 github.com/evleria/price-service v0.0.2 h1:8YHogd+e2NyIWmPZsS6+Ijv9ugwwLuB6DRcq77b+EmY=
@@ -181,6 +183,7 @@ github.com/sirupsen/logrus v1.8.1/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
+github.com/stretchr/objx v0.2.0 h1:Hbg2NidpLE8veEBkEZTL3CvlkUIVzuU9jDplZO54c48=
 github.com/stretchr/objx v0.2.0/go.mod h1:qt09Ya8vawLte6SNmTgCsAVtYtaKzEcn8ATUoHMkEqE=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
